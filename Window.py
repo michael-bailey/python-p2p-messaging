@@ -53,8 +53,11 @@ class window:
 
 
         tk.mainloop()
+
     def accept_connections():
         raise NotImplementedError
-    def send
+        
+    def send():
+        raise NotImplementedError
 
 a = window()
