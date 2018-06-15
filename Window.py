@@ -12,9 +12,7 @@ class window:
     def __init__(self):
         self.window = tk.Tk()
 
-        self.menu = tk.Menu(window)
-        
-        self.menu.add()
+        self.menu = tk.Menu(self.window)
 
         self.pane = tk.PanedWindow(self.window, orient=tk.HORIZONTAL)
 
@@ -54,10 +52,10 @@ class window:
 
         tk.mainloop()
 
-    def accept_connections():
+    def accept_connections(self):
         raise NotImplementedError
         
-    def send():
+    def send(self):
         raise NotImplementedError
 
 a = window()
