@@ -1,10 +1,10 @@
 {
-    "contact":{
+    "1":{
         "name":"local",
         "ip":"127.0.0.1",
         "port":1111
     },
-    "contact":{
+    "2":{
         "name":"michael",
         "ip":"192.168.0.12",
         "port":1112

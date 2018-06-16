@@ -6,13 +6,19 @@ import threading as th
 class window:
 
     current_connecton = ("127.0.0.1",1000)
-
+    contacts = {}
 
 
     def __init__(self):
         self.window = tk.Tk()
 
-        self.menu = tk.Menu(self.window)
+        #self.menu = tk.Menu(self.window)
+
+        
+
+        #self.menu.pack()
+
+
 
         self.pane = tk.PanedWindow(self.window, orient=tk.HORIZONTAL)
 
@@ -48,9 +54,15 @@ class window:
         self.pane.add(self.left_frame)
         self.pane.add(self.right_frame)
 
-
+        self.load_contacts()
 
         tk.mainloop()
+
+    def load_contacts(self):
+        self.contacts = js.load(open(""))
+        
+
+
 
     def accept_connections(self):
         raise NotImplementedError
