@@ -4,41 +4,28 @@ import threading as th
 import json as js
 import sys
 
-
-connection_threads = []
-
-def connection_handler(shell):
+def connection_handler():
     while True:
         socket_begin = s.socket()
         socket_begin.bind((s.gethostname(), 2000))
+
+        print("listening for connections\n")
         socket_begin.listen(5)
         sock, info = socket_begin.accept()
-        connection_threads.append(th.Thread(target=recieve_data,args=(sock, info)))
-        connection_threads[len(connection_threads) - 1].start()
+
+        data = sock.recv(65536)
+        sock.close()
+        print(data)
+        print("got connection from {0} on port {1}\n".format(sock.getsockname(),info))
+
+        del socket_begin
+        del sock
+        del info
+        del data
         t.sleep(1)
      
-
-def recieve_data(socket, info):
-    data = socket.recieve(65536)
-    print(data)
-    t.sleep(5)
-
-
-handler_thread = th.Thread(target=connection_handler)
+handler_thread = th.Thread(target=connection_handler, args=())
+handler_thread.start()
 
 while True:
-    handle = th.Thread(target=connection_handler,args=())
-    handle.start()
-
-    send_socket = s.socket()
-    while True:
-        send_ip = input("enter ip")
-        send_port = int(input("enter port"))
-        connection_info = (send_ip, send_port)
-        try:
-            send_socket.connect(connection_info)
-            send_socket.send(input("enter message").encode("ascii"))
-            socket.close()
-        except:
-            print("couldn't connect peer must be offline")
-
+    connection_info = input("enter info (ip | port)\n").split(" ")
