@@ -42,10 +42,10 @@ class program():
                 self.remove_contact()
 
             if option == "6":
-                pass
+                self.ping_all()
 
             if option == "7":
-                #save_all()
+                save_all()
                 exit()
 
     def send_data(self):
@@ -137,6 +137,22 @@ class program():
             open("contacts.json",'w').write(js.dumps(self.contacts))
             print("has been removed")
             print()
+    
+    def ping_all(self):
+        print()
+        ping_socket = s.socket()
+        for i in iter(self.contacts.keys()):
+            try:
+                ping_socket.connect(i["ip"],i["port"])
+                ping_socket.close()
+                print(i,"is online")
+            except:
+                print(i,"isnt online")
+        print()
+    
+    def save_all(self):
+        open("contacts.json",'w').write(js.dumps(self.contacts))
+        open("config.json",'w').write(js.dumps(self.client_config))
 
     def connection_handler(self):
         socket_begin = s.socket()
