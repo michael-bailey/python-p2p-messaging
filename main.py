@@ -1,3 +1,8 @@
+#!/usr/env python
+# chat program
+# michael bailey
+# python
+
 import socket as s
 import time as t
 import threading as th
@@ -6,7 +11,7 @@ import queue as q
 
 class program():
 
-    def get_menu(self):                                                         #displays and returns a menu option
+    def get_menu(self):
             print("1. send message.")
             print("2. get message.")
             print("3. show contacts")
@@ -21,6 +26,7 @@ class program():
         self.client_config = js.load(open("config.json",'r'))
         self.contacts = js.load(open("contacts.json","r"))
         self.message_queue = q.Queue()
+        self.messages = js.load(open("Messages.json","r"))
         th.Thread(target=self.connection_handler, args=()).start()
 
         while True:
@@ -166,10 +172,15 @@ class program():
             sock, info = socket_begin.accept()
 
             data = str(sock.recv(65536))
-            sock.close()
+
+            print(self.messages)
+            self.messages[str(len(self.messages)+1)] = js.dumps(data)
             self.message_queue.put(data)
+
+            sock.close()
+            
             try:
-                open("Messages.json",'w').write(js.dumps(data))
+                open("Messages.json",'w').write(js.dumps(self.messages))
             except:
                 print("error in data recieved")
                 pass
