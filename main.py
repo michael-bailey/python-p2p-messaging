@@ -12,7 +12,8 @@ class program():
             print("3. show contacts")
             print("4. add contact")
             print("5. remove contact")
-            print("6. exit program.")
+            print("6. who's online")
+            print("7. exit program.")
             return input("enter number of the option : ")
 
     def __init__(self):
@@ -38,9 +39,12 @@ class program():
                 self.add_contact()
 
             if option == "5":
-                pass
+                self.remove_contact()
 
             if option == "6":
+                pass
+
+            if option == "7":
                 #save_all()
                 exit()
 
@@ -122,6 +126,17 @@ class program():
         }
         self.contacts[name] = construct
         open("contacts.json",'w').write(js.dumps(self.contacts))
+
+    def remove_contact(self):
+        print()
+        contact = input("enter contact to remove : ")
+        if contact not in self.contacts:
+            print("contact not found")
+        else:
+            print(self.contacts.pop(contact))
+            open("contacts.json",'w').write(js.dumps(self.contacts))
+            print("has been removed")
+            print()
 
     def connection_handler(self):
         socket_begin = s.socket()
