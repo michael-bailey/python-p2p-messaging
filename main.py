@@ -49,6 +49,7 @@ class program():
                 exit()
 
     def send_data(self):
+        print()
         option = input("input client data or choose contact (D or C) : ")
         print()
         if option.upper() == "C":
@@ -101,6 +102,7 @@ class program():
             print()
 
     def get_data(self):
+        print()
         if self.message_queue.qsize() != 0:
             for i in range(self.message_queue.qsize()):
                 print("message ", i, " is ", self.message_queue.get())
@@ -116,6 +118,7 @@ class program():
         print()
 
     def add_contact(self):
+        print()
         name = input("enter name of new contact : ")
         ip = input("enter ip address : ")
         port = int(input("enter connection port : "))
@@ -162,16 +165,18 @@ class program():
             socket_begin.listen(5)
             sock, info = socket_begin.accept()
 
-            data = sock.recv(65536)
+            data = str(sock.recv(65536))
             sock.close()
             self.message_queue.put(data)
+            try:
+                open("Messages.json",'w').write(js.dumps(data))
+            except:
+                print("error in data recieved")
+                pass
             
             del sock
             del info
             del data
             t.sleep(1)
-
-    
-
 
 start_point = program()
