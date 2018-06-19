@@ -28,8 +28,64 @@ class program():
             if option == "1":
                 self.send_data()
             if option == "2":
-                pass
+                self.get_data()
 
+    def send_data(self):
+        option = input("input client data or choose contact (D or C) : ")
+        print()
+        if option.upper() == "C":
+            contact = input("enter contact name : ")
+            print()
+            
+            while contact not in self.contacts:
+                print("{0} isnt in contact".format(contact))
+                contact = input("enter contact name : ")
+            
+            connection_info = (self.contacts[contact]["ip"],self.contacts[contact]["port"])
+            
+            Message = input("enter message : ")
+            print
+            
+            packet = {
+                "info":
+                {
+                    "ip":s.gethostname(),
+                    "port":self.client_config["port"]
+                    },
+                "content":Message
+                }
+            print(js.dumps(packet))
+
+        else:
+            ip = input("enter ip of client ")
+            port = int(input("enter port of the client "))
+            Message = input("enter the message to send ")
+            print()
+
+            connection_info = (ip,port)
+
+            packet = {
+                "info":
+                {
+                    "ip":s.gethostname(),
+                    "port":self.client_config["port"]
+                    },
+                "content":Message
+                }
+            
+
+        client_sock = s.socket()
+        try:
+            client_sock.connect(connection_info)
+            client_sock.send(js.dumps(packet))
+        except:
+            print("couldnt connect ... aborting")
+            print()
+
+    def get_data(self):
+        for i in range(self.message_queue.qsize()):
+            print(self.message_queue.get())
+            print()
 
     def add_contact(self):
         name = input("enter name of new contact")
@@ -43,40 +99,9 @@ class program():
         self.contacts[name] = construct
         open("contacts.json",'w').write(js.dumps(self.contacts))
 
-
-
-    def send_data(self):
-        option = input("input client data or choose contact (D or C)")
-        if option.upper() == "C":
-            while contact not in self.contacts:
-                contact = input("enter contact name")
-            
-            connection_info = (self.contacts[contact]["ip"],self.contacts[contact]["port"])
-            
-            Message = input("enter message")
-            
-            packet = {
-                "info":
-                {
-                    "ip":s.gethostname(),
-                    "port":self.client_config["port"]
-                    },
-                "content":Message
-                }
-            print(js.dumps(packet))
-            
-        else:
-            
-        client_sock = s.socket()
-        try:
-            client_sock.connect()
-            client_sock.send(js.dumps(packet))
-        except:
-            print("couldnt connect ... aborting")
-
     def connection_handler(self):
         socket_begin = s.socket()
-        socket_begin.bind((s.gethostname(), 2000))
+        socket_begin.bind((s.gethostname(), self.client_config["port"]))
         while True:
             
             socket_begin.listen(5)
@@ -84,7 +109,7 @@ class program():
 
             data = sock.recv(65536)
             sock.close()
-            message_queue.put(data)
+            self.message_queue.put(data)
             
             del sock
             del info
