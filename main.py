@@ -35,7 +35,7 @@ class program():
                 self.show_contacts()
 
             if option == "4":
-                pass
+                self.add_contact()
 
             if option == "5":
                 pass
@@ -112,9 +112,9 @@ class program():
         print()
 
     def add_contact(self):
-        name = input("enter name of new contact")
-        ip = input("enter ip address")
-        port = input("enter connection port")
+        name = input("enter name of new contact : ")
+        ip = input("enter ip address : ")
+        port = int(input("enter connection port : "))
 
         construct = {
             "ip":ip,
