@@ -51,7 +51,7 @@ class program():
                 self.ping_all()
 
             if option == "7":
-                save_all()
+                self.save_all()
                 exit()
 
     def send_data(self):
@@ -171,16 +171,16 @@ class program():
             socket_begin.listen(5)
             sock, info = socket_begin.accept()
 
-            data = str(sock.recv(65536))
+            data = sock.recv(65536).decode("ascii")
 
-            print(self.messages)
-            self.messages[str(len(self.messages)+1)] = js.dumps(data)
+            self.messages[str(len(self.messages)+1)] = js.loads(data)
             self.message_queue.put(data)
 
+            
             sock.close()
             
             try:
-                open("Messages.json",'w').write(js.dumps(self.messages))
+                open("Messages.json",'w').write(js.dumps(self.messages)).close()
             except:
                 print("error in data recieved")
                 pass
