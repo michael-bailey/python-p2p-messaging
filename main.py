@@ -29,30 +29,33 @@ class program():
         self.messages = js.load(open("Messages.json","r"))
         th.Thread(target=self.connection_handler, args=()).start()
 
-        while True:
-            option = self.get_menu()
+        if self.client_config["gui"] == 1:
+            pass
+        else:
+            while True:
+                option = self.get_menu()
 
-            if option == "1":
-                self.send_data()
+                if option == "1":
+                    self.send_data()
 
-            if option == "2":
-                self.get_data()
+                if option == "2":
+                    self.get_data()
 
-            if option == "3":
-                self.show_contacts()
+                if option == "3":
+                    self.show_contacts()
 
-            if option == "4":
-                self.add_contact()
+                if option == "4":
+                    self.add_contact()
 
-            if option == "5":
-                self.remove_contact()
+                if option == "5":
+                    self.remove_contact()
 
-            if option == "6":
-                self.ping_all()
+                if option == "6":
+                    self.ping_all()
 
-            if option == "7":
-                self.save_all()
-                exit()
+                if option == "7":
+                    self.save_all()
+                    exit()
 
     def send_data(self):
         print()
