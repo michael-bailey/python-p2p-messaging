@@ -165,7 +165,7 @@ class program():
 
     def connection_handler(self):
         socket_begin = s.socket()
-        socket_begin.bind((s.gethostname(), self.client_config["port"]))
+        socket_begin.bind(("", self.client_config["port"]))
         while True:
             
             socket_begin.listen(5)
