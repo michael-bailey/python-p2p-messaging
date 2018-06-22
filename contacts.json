@@ -1,1 +1,1 @@
-{"someone else": {"ip": "192.168.0.12", "port": 1112}, "localhost": {"ip": "127.0.0.1", "port": 90}, "vm": {"ip": "192.168.56.101", "port": 80}}
+{"someone else": {"ip": "192.168.0.12", "port": 1112}, "localhost": {"ip": "127.0.0.1", "port": 90}}
