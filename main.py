@@ -51,7 +51,6 @@ class program():
                 self.ping_all()
 
             if option == "7":
-                self.save_all()
                 exit()
 
     def send_data(self):
@@ -80,7 +79,6 @@ class program():
                 "content":Message
                 }
             print(js.dumps(packet))
-
         else:
             ip = input("enter ip of client ")
             port = int(input("enter port of the client "))
@@ -102,10 +100,13 @@ class program():
         client_sock = s.socket()
         try:
             client_sock.connect(connection_info)
-            client_sock.send(js.dumps(packet))
-        except:
+            data = js.dumps(packet)
+            client_sock.send(data.encode("ascii"))
+        except s.error as e:
             print("couldnt connect ... aborting")
+            print(e.value)
             print()
+            client_sock.close()
 
     def get_data(self):
         print()
@@ -159,10 +160,6 @@ class program():
                 print(i,"isnt online")
         print()
     
-    def save_all(self):
-        open("contacts.json",'w').write(js.dumps(self.contacts))
-        open("config.json",'w').write(js.dumps(self.client_config))
-
     def connection_handler(self):
         socket_begin = s.socket()
         socket_begin.bind(("", self.client_config["port"]))
@@ -171,18 +168,16 @@ class program():
             socket_begin.listen(5)
             sock, info = socket_begin.accept()
 
-            data = sock.recv(65536).decode("ascii")
-
+            data = sock.recv(65536).decode("utf-8")
+            sock.close()
             self.messages[str(len(self.messages)+1)] = js.loads(data)
             self.message_queue.put(data)
-
-            
-            sock.close()
             
             try:
                 open("Messages.json",'w').write(js.dumps(self.messages)).close()
-            except:
+            except s.error as e:
                 print("error in data recieved")
+                print(e.value)
                 pass
             
             del sock
