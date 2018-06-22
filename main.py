@@ -30,7 +30,9 @@ class program():
         th.Thread(target=self.connection_handler, args=()).start()
 
         if self.client_config["gui"] == 1:
-            pass
+            self.create_gui()
+
+
         else:
             while True:
                 option = self.get_menu()
@@ -175,12 +177,10 @@ class program():
             sock, info = socket_begin.accept()
 
             data = sock.recv(65536).decode("ascii")
+            sock.close()
 
             self.messages[str(len(self.messages)+1)] = js.loads(data)
             self.message_queue.put(data)
-
-            
-            sock.close()
             
             try:
                 open("Messages.json",'w').write(js.dumps(self.messages)).close()
@@ -192,5 +192,104 @@ class program():
             del info
             del data
             t.sleep(1)
+"""
+    def create_gui():
+        self.window = tk.Tk()
+
+        self.pane = tk.PanedWindow(self.window, orient=tk.HORIZONTAL)
+
+        self.left_frame = tk.Frame()
+
+        self.contacts = tk.Listbox(self.left_frame)
+        self.contacts.pack(fill=tk.BOTH, expand=1)
+        
+        self.left_frame.pack(fill=tk.BOTH, expand=1)
+
+
+        self.right_frame = tk.Frame()
+
+
+        self.messages = tk.Listbox(self.right_frame)
+        self.messages.pack(fill=tk.BOTH, expand=1)
+
+        self.entry_frame = tk.Frame(self.right_frame)
+
+        self.enter_box = tk.Entry(self.entry_frame)
+        self.enter_box.pack(side=tk.LEFT, fill=tk.X, expand=1)
+
+        self.enter_button = tk.Button(self.entry_frame, text="enter")
+        self.enter_button.pack(side=tk.RIGHT, fill=tk.X)
+
+        self.entry_frame.pack(fill=tk.X)
+
+
+        self.right_frame.pack(fill=tk.BOTH, expand=1)
+
+        self.pane.pack(fill=tk.BOTH, expand=1)
+
+        self.pane.add(self.left_frame)
+        self.pane.add(self.right_frame)
+
+        self.load_contacts()
+
+        tk.mainloop()
+
+    def gui_get_data(self, ):
+        print()
+        if self.message_queue.qsize() != 0:
+            for i in range(self.message_queue.qsize()):
+                print("message ", i, " is ", self.message_queue.get())
+                print()
+        else:
+            print("no new messages")
+            print()
+
+    def gui_show_contacts(self):
+        print()
+        for i in iter(self.contacts.keys()):
+            print(i)
+        print()
+
+    def gui_add_contact(self):
+        print()
+        name = input("enter name of new contact : ")
+        ip = input("enter ip address : ")
+        port = int(input("enter connection port : "))
+
+        construct = {
+            "ip":ip,
+            "port":port,
+        }
+        self.contacts[name] = construct
+        open("contacts.json",'w').write(js.dumps(self.contacts))
+
+    def gui_remove_contact(self):
+        print()
+        contact = input("enter contact to remove : ")
+        if contact not in self.contacts:
+            print("contact not found")
+        else:
+            print(self.contacts.pop(contact))
+            open("contacts.json",'w').write(js.dumps(self.contacts))
+            print("has been removed")
+            print()
+    
+    def gui_ping_all(self):
+        print()
+        ping_socket = s.socket()
+        for i in iter(self.contacts.keys()):
+            try:
+                ping_socket.connect(i["ip"],i["port"])
+                ping_socket.close()
+                print(i,"is online")
+            except:
+                print(i,"isnt online")
+        print()
+    
+    def gui_save_all(self):
+        open("contacts.json",'w').write(js.dumps(self.contacts))
+        open("config.json",'w').write(js.dumps(self.client_config))
+
+"""
 
 start_point = program()
