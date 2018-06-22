@@ -80,7 +80,6 @@ class program():
                 "content":Message
                 }
             print(js.dumps(packet))
-
         else:
             ip = input("enter ip of client ")
             port = int(input("enter port of the client "))
@@ -103,8 +102,9 @@ class program():
         try:
             client_sock.connect(connection_info)
             client_sock.send(js.dumps(packet))
-        except:
+        except s.error as e:
             print("couldnt connect ... aborting")
+            print(e.value)
             print()
 
     def get_data(self):
@@ -170,19 +170,17 @@ class program():
             
             socket_begin.listen(5)
             sock, info = socket_begin.accept()
-
-            data = sock.recv(65536).decode("ascii")
+            data = sock.recv(65536).decode("utf-8")
+            sock.close()
 
             self.messages[str(len(self.messages)+1)] = js.loads(data)
             self.message_queue.put(data)
 
-            
-            sock.close()
-            
             try:
-                open("Messages.json",'w').write(js.dumps(self.messages)).close()
-            except:
+                js.dump(self.messages,open("Messages.json","w"))
+            except s.error as e:
                 print("error in data recieved")
+                print(e.value)
                 pass
             
             del sock
