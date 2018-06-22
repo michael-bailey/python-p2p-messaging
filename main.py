@@ -100,7 +100,7 @@ class program():
         client_sock = s.socket()
         try:
             client_sock.connect(connection_info)
-            client_sock.send(js.dumps(packet))
+            client_sock.send(js.dumps(packet).encode("ascii"))
         except s.error as e:
             print("couldnt connect ... aborting")
             print(e.value)
