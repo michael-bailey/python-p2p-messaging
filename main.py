@@ -100,8 +100,12 @@ class program():
         client_sock = s.socket()
         try:
             client_sock.connect(connection_info)
+<<<<<<< HEAD
             data = js.dumps(packet)
             client_sock.send(data.encode("ascii"))
+=======
+            client_sock.send(js.dumps(packet))
+>>>>>>> a8d053b26c98d8ce4c08eaa18d0111d47d276979
         except s.error as e:
             print("couldnt connect ... aborting")
             print(e.value)
@@ -167,6 +171,7 @@ class program():
             
             socket_begin.listen(5)
             sock, info = socket_begin.accept()
+<<<<<<< HEAD
 
             data = sock.recv(65536).decode("utf-8")
             sock.close()
@@ -175,6 +180,16 @@ class program():
             
             try:
                 open("Messages.json",'w').write(js.dumps(self.messages)).close()
+=======
+            data = sock.recv(65536).decode("utf-8")
+            sock.close()
+
+            self.messages[str(len(self.messages)+1)] = js.loads(data)
+            self.message_queue.put(data)
+
+            try:
+                js.dump(self.messages,open("Messages.json","w"))
+>>>>>>> a8d053b26c98d8ce4c08eaa18d0111d47d276979
             except s.error as e:
                 print("error in data recieved")
                 print(e.value)
