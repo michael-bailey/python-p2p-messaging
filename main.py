@@ -18,7 +18,8 @@ class program():
             print("4. add contact")
             print("5. remove contact")
             print("6. who's online")
-            print("7. exit program.")
+            print("7. change configuration")
+            print("8. exit program.")
             return input("enter number of the option : ")
 
     def __init__(self):
@@ -51,7 +52,7 @@ class program():
                 self.ping_all()
 
             if option == "7":
-                exit()
+                self.change_config()
 
     def send_data(self):
         print()
@@ -159,6 +160,12 @@ class program():
                 print(i,"isnt online")
         print()
     
+    def change_config(self):
+        change = input("change port number : ")
+        if change.upper() != "no" or change.upper() != "n":
+            self.client_config["port"] = int(change)
+            js.dump(self.client_config, open("config.json", "w"))
+
     def connection_handler(self):
         socket_begin = s.socket()
         socket_begin.bind(("", self.client_config["port"]))
