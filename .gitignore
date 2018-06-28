@@ -5,4 +5,5 @@ config.json
 <<<<<<< HEAD
 Messages.json
 =======
+*.json
 >>>>>>> 6fac2be9146747a26fa01e31eb0ae66cb058348f
