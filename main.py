@@ -1,194 +1,62 @@
-#!/usr/env python
-# chat program
-# michael bailey
-# python
-
 import socket as s
-import time as t
-import threading as th
 import json as js
-import queue as q
+import threading as th
+from tkinter import *
 
-class program():
 
-    def get_menu(self):
-            print("1. send message.")
-            print("2. get message.")
-            print("3. show contacts")
-            print("4. add contact")
-            print("5. remove contact")
-            print("6. who's online")
-            print("7. change configuration")
-            print("8. exit program.")
-            return input("enter number of the option : ")
+class start_window(Tk):
+    def __init__(self, selection):
+        super().__init__()
 
-    def __init__(self):
+        #variables for later
+        self.server = ''
+        self.login = ''
+        self.password =''
 
-        self.client_config = js.load(open("config.json",'r'))
-        self.contacts = js.load(open("contacts.json","r"))
-        self.message_queue = q.Queue()
-        self.messages = js.load(open("Messages.json","r"))
-        th.Thread(target=self.connection_handler, args=()).start()
 
-        while True:
-            option = self.get_menu()
+        #load list of servers (currently local)
+        self.servers = js.load(open("servers.json","r"))
 
-            if option == "1":
-                self.send_data()
 
-            if option == "2":
-                self.get_data()
+        #create gui widgets
+        self.server_select = Listbox(self)
+        self.login_box = Entry(self)
+        self.password_box = Entry(self, show="#")
+        self.enter_btn = Button(self, text="enter", command=self.Enter)
+        self.register_btn = Button(self, text="register", command=self.Register)
 
-            if option == "3":
-                self.show_contacts()
 
-            if option == "4":
-                self.add_contact()
+        #generate options
+        for i in range(1,len(self.servers)+1):
+            self.server_select.insert(END,self.servers[str(i)])
 
-            if option == "5":
-                self.remove_contact()
 
-            if option == "6":
-                self.ping_all()
+        #packing all widgets
+        self.server_select.pack()
+        self.login_box.pack()
+        self.password_box.pack()
+        self.enter_btn.pack(side=LEFT)
+        self.register_btn.pack(side=RIGHT)
 
-            if option == "7":
-                self.change_config()
+        #start the main loop
+        mainloop()
 
-    def send_data(self):
-        print()
-        option = input("input client data or choose contact (D or C) : ")
-        print()
-        if option.upper() == "C":
-            contact = input("enter contact name : ")
-            print()
-            
-            while contact not in self.contacts:
-                print("{0} isnt in contact".format(contact))
-                contact = input("enter contact name : ")
-            
-            connection_info = (self.contacts[contact]["ip"],self.contacts[contact]["port"])
-            
-            Message = input("enter message : ")
-            print
-            
-            packet = {
-                "info":
-                {
-                    "ip":s.gethostname(),
-                    "port":self.client_config["port"]
-                    },
-                "content":Message
-                }
-            print(js.dumps(packet))
-        else:
-            ip = input("enter ip of client ")
-            port = int(input("enter port of the client "))
-            Message = input("enter the message to send ")
-            print()
-
-            connection_info = (ip,port)
-
-            packet = {
-                "info":
-                {
-                    "ip":s.gethostname(),
-                    "port":self.client_config["port"]
-                    },
-                "content":Message
-                }
-            
-
-        client_sock = s.socket()
-        try:
-            client_sock.connect(connection_info)
-            client_sock.send(js.dumps(packet).encode("ascii"))
-        except s.error as e:
-            print("couldnt connect ... aborting")
-            print(e.value)
-            print()
-            client_sock.close()
-
-    def get_data(self):
-        print()
-        if self.message_queue.qsize() != 0:
-            for i in range(self.message_queue.qsize()):
-                print("message ", i, " is ", self.message_queue.get())
-                print()
-        else:
-            print("no new messages")
-            print()
-
-    def show_contacts(self):
-        print()
-        for i in iter(self.contacts.keys()):
-            print(i)
-        print()
-
-    def add_contact(self):
-        print()
-        name = input("enter name of new contact : ")
-        ip = input("enter ip address : ")
-        port = int(input("enter connection port : "))
-
-        construct = {
-            "ip":ip,
-            "port":port,
-        }
-        self.contacts[name] = construct
-        open("contacts.json",'w').write(js.dumps(self.contacts))
-
-    def remove_contact(self):
-        print()
-        contact = input("enter contact to remove : ")
-        if contact not in self.contacts:
-            print("contact not found")
-        else:
-            print(self.contacts.pop(contact))
-            open("contacts.json",'w').write(js.dumps(self.contacts))
-            print("has been removed")
-            print()
+    def Enter(self, frame):
+        self.server = self.server_select.get(ACTIVE)
+        self.login = self.login_box.get()
+        self.password = hash(self.password_box.get())
+        self.destroy()
     
-    def ping_all(self):
-        print()
-        ping_socket = s.socket()
-        for i in iter(self.contacts.keys()):
-            try:
-                ping_socket.connect(i["ip"],i["port"])
-                ping_socket.close()
-                print(i,"is online")
-            except:
-                print(i,"isnt online")
-        print()
-    
-    def change_config(self):
-        change = input("change port number : ")
-        if change.upper() != "no" or change.upper() != "n":
-            self.client_config["port"] = int(change)
-            js.dump(self.client_config, open("config.json", "w"))
+    def Register(self, frame)
 
-    def connection_handler(self):
-        socket_begin = s.socket()
-        socket_begin.bind(("", self.client_config["port"]))
-        while True:
+class Main_window(Tk):
+    def __init__(self, server_ip, login, password):
+        pass
+
+
+selection = ''
             
-            socket_begin.listen(5)
-            sock, info = socket_begin.accept()
-            data = sock.recv(65536).decode("utf-8")
-            sock.close()
-
-            self.messages[str(len(self.messages)+1)] = js.loads(data)
-            self.message_queue.put(data)
-
-            try:
-                js.dump(self.messages,open("Messages.json","w"))
-            except s.error as e:
-                print("error in data recieved")
-                print(e.value)
-                pass
-            
-            del sock
-            del info
-            del data
-            t.sleep(1)
-
-start_point = program()
+main_window = start_window(selection)
+"""
+server_window = server_window(main_window.selection)
+"""

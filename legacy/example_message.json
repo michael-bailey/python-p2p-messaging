@@ -1,0 +1,8 @@
+{
+    "info":
+    {
+        "host":"123.123.123.4",
+        "port": 1345
+    },
+    "content":"hello networking"
+}
