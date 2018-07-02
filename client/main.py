@@ -37,6 +37,9 @@ class scrollListBox(Frame):
         a = self.listbox.get(first, last)
         return a
 
+
+
+
 #starting window class
 class login(Tk):
     def __init__(self):
@@ -89,7 +92,18 @@ class login(Tk):
 
         open("login.json","W").write(js.dump(temp_login))
          self.destroy()
-        
+
+class Main_Window(Tk):
+    def __init__(self):
+        super().__init__()
+
+        #split window in two one side for users other for messages
+        split_view = PanedWindow(orient=VERTICAL).pack(fill=BOTH, expand=True)
+
+        #create widgets for the splitView
+
+
+        split_view.add()
 
 
 login_window = login()
