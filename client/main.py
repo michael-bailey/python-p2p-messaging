@@ -36,6 +36,9 @@ class scrollListBox(Frame):
     def get(self, first, last=None):
         a = self.listbox.get(first, last)
         return a
+    
+    def clear(self):
+        self.listbox.delete(FIRST,END)
 
 
 
@@ -69,8 +72,8 @@ class login(Tk):
         except FileNotFoundError:
             pass
         
+        #kill window file exists no need to continue
         if fileExists == 1:
-            #kill window file exists no need to continue
             self.destroy()
             return
         else:
@@ -82,35 +85,50 @@ class login(Tk):
     def Enter(self):
         #get details from form/window
         self.login = self.login_box.get().encode("ascii")
-        self.password = hash(self.password_box.get()).encode("ascii")
+        self.password = str(hash(self.password_box.get())).encode("ascii")
         
         #save them to a file
         temp_login = {
-            "login":self.login,
-            "psk":self.password
+            "login":self.login.decode("utf-8"),
+            "psk":self.password.decode("utf-8")
         }
 
-        open("login.json","W").write(js.dump(temp_login))
-         self.destroy()
+        open("login.json","w").write(js.dumps(temp_login))
+        self.destroy()
 
 class Main_Window(Tk):
-    def __init__(self):
+    def __init__(self, server_socket):
         super().__init__()
 
+        #save socket as a attribute of this object
+        self.server_connection = server_socket
+
         #split window in two one side for users other for messages
-        split_view = PanedWindow(orient=VERTICAL).pack(fill=BOTH, expand=True)
+        self.split_view = PanedWindow(orient=VERTICAL).pack(fill=BOTH, expand=True)
 
         #create widgets for the splitView
+        self.contact_list = scrollListBox(self)
+        self.messages_pane = Frame(self)
 
+        #populating frame with widgets for the message ui
+        self.messages = scrollListBox(self)
+        self.input_box = Entry(self)
+        self.input_button(self, command = self.send)
+        
+        #add widget to the split view
+        split_view.add(self.contact_list)
+        split_view.add(self.messages_pane)
 
-        split_view.add()
+    def send():
+        pass
+
 
 
 login_window = login()
 
 server_select_win = serverSelection()
 
-server_connection = serv
+main = Main_Window(server_select_win.server_sock)
 
 
 

@@ -1,2 +1,5 @@
 reg <name> <passwd hash>
     -- USER_EXISTS
+
+connect <user>
+    -- <USER> <IP> <PORT>
