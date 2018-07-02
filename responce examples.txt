@@ -1,0 +1,2 @@
+reg <name> <passwd hash>
+    -- USER_EXISTS

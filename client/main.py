@@ -3,7 +3,7 @@ import json as js
 import threading as th
 from tkinter import *
 import os
-
+import time as t
 
 """
 ------------notes------------
@@ -15,7 +15,7 @@ import os
 #creating a composite widget that combines the list box and a scroll bar
 class scrollListBox(Frame):
     def __init__(self, root):
-        super().__init__()
+        super().__init__(root)
 
         #create widgets
         self.listbox = Listbox(self)
@@ -37,91 +37,105 @@ class scrollListBox(Frame):
         a = self.listbox.get(first, last)
         return a
 
-
-
-class start_window(Tk):
-    def __init__(self, selection):
+#starting window class
+class login(Tk):
+    def __init__(self):
         super().__init__()
 
-        #variables for later
-        self.server = ''
-        self.port = 1012
+        #variables for window
         self.login = ''
         self.password =''
         
-
-        #load list of servers (currently local)
-        self.servers = js.load(open(os.getcwd() + "/client/config/servers.json","r"))
-
-
         #create gui widgets
-        #button gets the selected server and login details connects to the server 
-        #sends details and the server will either accept (send ok signal) or not (close the socket) 
-        self.server_select = scrollListBox(self)
+        self.tip_label = Label(self, text="enter login details")
         self.login_box = Entry(self)
         self.password_box = Entry(self, show="#")
         self.enter_btn = Button(self, text="enter", command=self.Enter)
-        self.register_btn = Button(self, text="register", command=self.Register)
-
-
-        #generate options
-        for i in range(1,len(self.servers)+1):
-            self.server_select.insert(END,self.servers[str(i)])
-
 
         #packing all widgets
+        self.tip_label.pack(fill=X)
+        self.login_box.pack(fill=X)
+        self.password_box.pack(fill=X)
+        self.enter_btn.pack(fill=X)
 
-        self.server_select.pack()
-        self.login_box.pack()
-        self.password_box.pack()
-        self.enter_btn.pack(side=LEFT)
-        self.register_btn.pack(side=RIGHT)
-
-        #start the main loop
-        mainloop()
+        #check if the login file exists
+        fileExists = 0
+        try:
+            open("config/login.json","r")
+            fileExists = 1
+        except FileNotFoundError:
+            pass
+        
+        if fileExists == 1:
+            #kill window file exists no need to continue
+            self.destroy()
+            return
+        else:
+            #start the main loop
+            mainloop()
 
 
     #called when enter button 
     def Enter(self):
-        print("enter pressed")
-        #get infomation
-        self.server = self.server_select.get(ACTIVE)
-        self.login = self.login_box.get()
-        self.password = hash(self.password_box.get())
+        #get details from form/window
+        self.login = self.login_box.get().encode("ascii")
+        self.password = hash(self.password_box.get()).encode("ascii")
+        
+        #save them to a file
+        temp_login = {
+            "login":self.login,
+            "psk":self.password
+        }
 
-        # !--enter code to connect to server--!
+        open("login.json","W").write(js.dump(temp_login))
+         self.destroy()
+        
 
-        sock = s.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((self.server, self.port))
+
+login_window = login()
+
+server_select_win = serverSelection()
+
+server_connection = serv
 
 
-        #kill window ready for next window
-        self.destroy()
-    
-    def Register(self):
+
+
+
+
+
+
+
+
+
+"""
+
+def Register(self):
         print("reg pressed")
 
         #get infomation
-        self.server = self.server_select.get(ACTIVE)
-        self.login = self.login_box.get()
-        self.password = hash(self.password_box.get())
+        self.server = self.server_select.get(ACTIVE).encode("ascii")
+        self.login = self.login_box.get().encode("ascii")
+        self.password = hash(self.password_box.get()).encode("ascii")
 
-        # !--enter code to connect to server--!
+        #create socket object to send request to register a user 
+        sock = s.socket()
+        sock.connect((self.server[0], self.port))
 
-        sock = s.socket(s.AF_INET, s.SOCK_STREAM)
-        sock.connect((self.server, self.port))
+        #send register message to the server
+        sock.send("REG ".encode("ascii") + self.login + self.password)
+        response = sock.recv(1024)
 
-"""
-class Main_window(Tk):
-    def __init__(self, server_ip, login, password):
-    def 
-"""
+        #error reporting to the user
+        if response == "USER_EXISTS":
+            pass#error_box = messagebox()
+        else:
+            sock.close()
+            self.destroy()
 
-selection = ''
-            
-main_window = start_window(selection)
-print(main_window.response)
-print
-"""
-server_window = server_window(main_window.selection)
+
+                
+
+        #close the socket after we're done
+
 """
