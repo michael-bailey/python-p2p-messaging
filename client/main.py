@@ -40,9 +40,6 @@ class scrollListBox(Frame):
     def clear(self):
         self.listbox.delete(FIRST,END)
 
-
-
-
 #starting window class
 class login(Tk):
     def __init__(self):
@@ -81,6 +78,7 @@ class login(Tk):
             mainloop()
 
 
+
     #called when enter button 
     def Enter(self):
         #get details from form/window
@@ -93,8 +91,35 @@ class login(Tk):
             "psk":self.password.decode("utf-8")
         }
 
-        open("login.json","w").write(js.dumps(temp_login))
+        open("config/login.json","w").write(js.dumps(temp_login))
         self.destroy()
+
+class serverSelection(Tk):
+    def __init__(self):
+        super().__init__()
+
+        #open up a list of servers
+        self.options = js.load(open("config/servers.json","r"))
+
+        self.selection_list = scrollListBox(self)
+
+        for i in self.options:
+            self.selection_list.insert(END, i)
+
+        self.selection_list.bind("<Button-1>", self.select)
+
+        self.selection_list.pack(fill=BOTH, expand=True)
+        mainloop()
+    
+    def select(self):
+        self.server = self.selection_list.get(ACTIVE)
+        self.destroy()
+        pass
+
+
+        #create the server selection screen
+        #servers are added localy unless a future update allows servers to share servers
+
 
 class Main_Window(Tk):
     def __init__(self, server_socket):
@@ -116,10 +141,10 @@ class Main_Window(Tk):
         self.input_button(self, command = self.send)
         
         #add widget to the split view
-        split_view.add(self.contact_list)
-        split_view.add(self.messages_pane)
+        self.split_view.add(self.contact_list)
+        self.split_view.add(self.messages_pane)
 
-    def send():
+    def send(self):
         pass
 
 
@@ -171,3 +196,6 @@ def Register(self):
         #close the socket after we're done
 
 """
+
+
+
