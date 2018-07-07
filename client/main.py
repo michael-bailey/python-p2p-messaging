@@ -10,7 +10,15 @@ import time as t
     - think about Network address translation
 
 """
+#creating a memory saving list
+class memList():
+    def __init__(self):
+        super().__init__()
 
+        List = []
+
+    def insert(object)
+        if self.List.insert
 
 #creating a composite widget that combines the list box and a scroll bar
 class scrollListBox(Frame):
@@ -25,25 +33,65 @@ class scrollListBox(Frame):
         self.listbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.listbox.yview)
 
+        #set bindings
+        self.listbox.bind("<Button-1>", self.update)
+
         #pack the widgets into the frame !--not the root--!
-        self.listbox.pack(side=LEFT)
+        self.listbox.pack(side=LEFT, fill=BOTH, expand=True)
         self.scrollbar.pack(side=RIGHT, fill=Y)
 
-    #functions that should have been inhereted
+    #functions that should have been inhereted from listbox
     def insert(self, index, *elements):
         self.listbox.insert(index, elements)
 
     def get(self, first, last=None):
-        a = self.listbox.get(first, last)
-        return a
+        return self.listbox.get(first, last)
     
     def clear(self):
         self.listbox.delete(FIRST,END)
+    
+    def update(self, event):
+        self.selected = self.listbox.get(ACTIVE)
 
-#starting window class
-class login(Tk):
-    def __init__(self):
+class MessageWindow(Tk):
+    def __init__(self, socket):
         super().__init__()
+
+        #setting the socket as a attribute
+        self.socket = socket
+
+        #cleaning bit
+        self.cleaning_bit = 0
+
+        #defining widgets
+        self.message_view = scrollListBox(self)
+        self.text_box = Entry(self)
+        self.send_button = Button(self)
+
+        #packing widgets
+        self.message_view.pack(fill=BOTH, expand=True)
+        self.text_box.pack(fill=X, expand=True,side=LEFT)
+        self.send_button.pack(side=RIGHT)
+
+        #create thread
+    
+    def send_message(self):
+        self.socket.send(self.text_box.get())
+
+    def recieve_thread(self):
+        try:
+            msg = self.socket.recv(1024)
+            self.message_view.insert(END, msg)
+        except:
+            self.cleaning_bit = 1
+            self.destroy
+
+class loginWindow(Tk):
+    def __init__(self, start_up):
+        super().__init__()
+
+        #assigning passed values
+        self.start_up = start_up
 
         #variables for window
         self.login = ''
@@ -61,141 +109,33 @@ class login(Tk):
         self.password_box.pack(fill=X)
         self.enter_btn.pack(fill=X)
 
-        #check if the login file exists
-        fileExists = 0
-        try:
-            open("config/login.json","r")
-            fileExists = 1
-        except FileNotFoundError:
-            pass
-        
-        #kill window file exists no need to continue
-        if fileExists == 1:
-            self.destroy()
-            return
-        else:
-            #start the main loop
-            mainloop()
+        mainloop()
 
+    def get_values(self):
+        return self.login, self.password
 
+    def enter(self):
+        self.login = self.login_box.get()
+        self.password = hash(self.password_box.get())
+        self.destroy
 
-    #called when enter button 
-    def Enter(self):
-        #get details from form/window
-        self.login = self.login_box.get().encode("ascii")
-        self.password = str(hash(self.password_box.get())).encode("ascii")
-        
-        #save them to a file
-        temp_login = {
-            "login":self.login.decode("utf-8"),
-            "psk":self.password.decode("utf-8")
-        }
-
-        open("config/login.json","w").write(js.dumps(temp_login))
-        self.destroy()
-
-class serverSelection(Tk):
+class clientWindow(Tk):
     def __init__(self):
         super().__init__()
 
-        #open up a list of servers
-        self.options = js.load(open("config/servers.json","r"))
-
-        self.selection_list = scrollListBox(self)
-
-        for i in self.options:
-            self.selection_list.insert(END, i)
-
-        self.selection_list.bind("<Button-1>", self.select)
-
-        self.selection_list.pack(fill=BOTH, expand=True)
-        mainloop()
-    
-    def select(self):
-        self.server = self.selection_list.get(ACTIVE)
-        self.destroy()
-        pass
 
 
-        #create the server selection screen
-        #servers are added localy unless a future update allows servers to share servers
+        self.scroll_view = scrollListBox(self)
+        self.scroll_view.bind("<Button-1>", self.open_window)
 
-
-class Main_Window(Tk):
-    def __init__(self, server_socket):
-        super().__init__()
-
-        #save socket as a attribute of this object
-        self.server_connection = server_socket
-
-        #split window in two one side for users other for messages
-        self.split_view = PanedWindow(orient=VERTICAL).pack(fill=BOTH, expand=True)
-
-        #create widgets for the splitView
-        self.contact_list = scrollListBox(self)
-        self.messages_pane = Frame(self)
-
-        #populating frame with widgets for the message ui
-        self.messages = scrollListBox(self)
-        self.input_box = Entry(self)
-        self.input_button(self, command = self.send)
-        
-        #add widget to the split view
-        self.split_view.add(self.contact_list)
-        self.split_view.add(self.messages_pane)
-
-    def send(self):
-        pass
+        def open_window(self):
 
 
 
-login_window = login()
+loginWin = loginWindow
 
-server_select_win = serverSelection()
+login, password = loginWin.login, loginWin.password
 
-main = Main_Window(server_select_win.server_sock)
-
-
-
-
-
-
-
-
-
-
-
-"""
-
-def Register(self):
-        print("reg pressed")
-
-        #get infomation
-        self.server = self.server_select.get(ACTIVE).encode("ascii")
-        self.login = self.login_box.get().encode("ascii")
-        self.password = hash(self.password_box.get()).encode("ascii")
-
-        #create socket object to send request to register a user 
-        sock = s.socket()
-        sock.connect((self.server[0], self.port))
-
-        #send register message to the server
-        sock.send("REG ".encode("ascii") + self.login + self.password)
-        response = sock.recv(1024)
-
-        #error reporting to the user
-        if response == "USER_EXISTS":
-            pass#error_box = messagebox()
-        else:
-            sock.close()
-            self.destroy()
-
-
-                
-
-        #close the socket after we're done
-
-"""
-
+userWin = clientWindow()
 
 
