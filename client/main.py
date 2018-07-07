@@ -10,15 +10,8 @@ import time as t
     - think about Network address translation
 
 """
-#creating a memory saving list
-class memList():
-    def __init__(self):
-        super().__init__()
 
-        List = []
 
-    def insert(object)
-        if self.List.insert
 
 #creating a composite widget that combines the list box and a scroll bar
 class scrollListBox(Frame):

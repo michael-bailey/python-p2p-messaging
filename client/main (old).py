@@ -6,48 +6,22 @@
 import socket as s
 import time as t
 import threading as th
-import json as js
-import queue as q
+
 
 class program():
 
-    packet = {
-        request:"",
-        
-    }
-
     def get_menu(self):
             print("1. send message.")
-            print("2. get message.")
-            print("3. show contacts")
-            print("4. add contact")
-            print("5. remove contact")
-            print("6. who's online")
-            print("7. change configuration")
+            print("6. show who's online")
             print("8. exit program.")
             return input("enter number of the option : ")
 
     def __init__(self):
-        print("file check ...")
-        try:
-            js.load(open("config.json",'r'))
-        except:
-            client_config = {}
-            js.dump(client_config, open("config.json"))
+        
+        th.thread
 
-        try:
-            js.load(open("contacts.json","r"))
-        except:
-            contacts = {}
-            js.dump(contacts, open("contacts.json"))
-
-        try:
-            js.load(open("Messages.json","r"))
-        except:
-            messages = {}
-            js.dump(messages, open("Messages.json", "w"))
         print()
-        self.message_queue = q.Queue()
+
         self.exit_flag = 0
         self.handle = th.Thread(target=self.connection_handler, args=()).start()
 
@@ -56,58 +30,14 @@ class program():
             option = self.get_menu()
 
             if option == "1":
-                choice = input("contact or direct address (c or d)")
-                if choice.upper() == "C":
-                    self.send_data_contact()
-                elif choice.upper() == "D":
-                    self
+                pass
+            if option == "1":
+                pass
+            if option == "1":
+                pass
 
-            if option == "2":
-                self.get_data()
-
-            if option == "3":
-                self.show_contacts()
-
-            if option == "4":
-                self.add_contact()
-
-            if option == "5":
-                self.remove_contact()
-
-            if option == "6":
-                self.ping_all()
-
-            if option == "7":
-                self.change_config()
-
-            if option == "7":
-                self.exit_flag = 1
-
-    def send_data_contact(self):
+    def send_message(self):
         print()
-
-        contacts = js.load(open("contacts.json"), "r")
-
-
-        contact = input("enter contacts name : ")
-
-    def send_data_direct(self):
-        print()
-        ip = input("enter ip of client : ")
-        port = int(input("enter port of the client : "))
-        Message = input("enter the message to send : ")
-        print()
-
-        connection_info = (ip,port)
-        packet = {
-            "info":
-            {
-                "host":s.gethostname(),
-                "port":self.client_config["port"]
-            },
-            "content":Message
-        }
-            
 
         client_sock = s.socket()
         try:
@@ -116,6 +46,10 @@ class program():
         except s.error as e:
             print("couldnt connect ... aborting")
             print()
+
+    def server_connection():
+
+
 
         
 
