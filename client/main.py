@@ -14,8 +14,8 @@ import time as t
 
 #creating a composite widget that combines the list box and a scroll bar
 class scrollListBox(Frame):
-    def __init__(self, root):
-        super().__init__(root)
+    def __init__(self, parent):
+        super().__init__(parent, on_click=None)
 
         #create widgets
         self.listbox = tk.Listbox(self)
@@ -26,18 +26,38 @@ class scrollListBox(Frame):
         self.scrollbar.config(command=self.listbox.yview)
 
         #set bindings
-        self.listbox.bind("<Button-1>", self.update)
+        self.listbox.bind("<Button-1>", on_click, args=)
 
         #pack the widgets into the frame !--not the root--!
         self.listbox.pack(side=LEFT, fill=BOTH, expand=True)
         self.scrollbar.pack(side=RIGHT, fill=Y)
 
+        def update(self):
+            self.state = self.listbox.get()
+
+
 class messageFrame(tk.Frame):
-    def __init__(self)
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        #creating widget definitions
+        self.messageView = scrollListBox(self)
+        self.entryBox = tk.Entry(self)
+        self.enterButton = tk.Button(self)
+
+        #defining attributes
+
+        #setting bindings
+
+        #packing widgets
+
 
 class application(tk.Tk):
     def __init__(self):
         super().__init__():
 
-        splitPane = tk.pa
+        self.splitPane = tk.PanedWindow(self)
+        self.
+
+        
 
