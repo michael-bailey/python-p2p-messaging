@@ -13,32 +13,43 @@ import time as t
 
 
 #creating a composite widget that combines the list box and a scroll bar
-class scrollListBox(Frame):
-    def __init__(self, parent):
-        super().__init__(parent, on_click=None)
+class scrollListBox(tk.Frame):
+    def __init__(self, parent, on_click=None):
+        super().__init__(parent)
 
-        #create widgets
+        #parent object reference's
+        self.parent = parent
+        self.on_click = on_click
+
+        #creating widget definitions
         self.listbox = tk.Listbox(self)
-        self.scrollbar = tk.Scrollbar(self, orient=VERTICAL)
+        self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
 
-        #set up scrolling
+        #defining attributes
+
+        #set bindings and events
         self.listbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.listbox.yview)
 
-        #set bindings
-        self.listbox.bind("<Button-1>", on_click, args=)
+        self.listbox.bind("<Button-1>", on_click)
 
-        #pack the widgets into the frame !--not the root--!
-        self.listbox.pack(side=LEFT, fill=BOTH, expand=True)
-        self.scrollbar.pack(side=RIGHT, fill=Y)
+        #packing widgets
+        self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
+        #internal functions
         def update(self):
             self.state = self.listbox.get()
+            self.on_click()
+
 
 
 class messageFrame(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
+
+        #parent reference
+        self.parent = parent
 
         #creating widget definitions
         self.messageView = scrollListBox(self)
@@ -47,17 +58,17 @@ class messageFrame(tk.Frame):
 
         #defining attributes
 
-        #setting bindings
+        #set bindings and events
 
         #packing widgets
 
-
+"""
 class application(tk.Tk):
     def __init__(self):
-        super().__init__():
+        super().__init__()
 
         self.splitPane = tk.PanedWindow(self)
         self.
-
+"""
         
 

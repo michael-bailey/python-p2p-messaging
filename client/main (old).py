@@ -25,7 +25,10 @@ class program():
         
 
         while True:
-            command = input(":>")
+            command = input(":>").split(" ")
+
+            if command[0] = "send"
+                
 
             
 
