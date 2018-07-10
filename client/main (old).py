@@ -10,31 +10,24 @@ import threading as th
 
 class program():
 
-    def get_menu(self):
-            print("1. send message.")
-            print("6. show who's online")
-            print("8. exit program.")
-            return input("enter number of the option : ")
+    
 
     def __init__(self):
         
-        th.thread
+        self.handler = th.thread(target=self.server_connection).start()
 
-        print()
-
-        self.exit_flag = 0
-        self.handle = th.Thread(target=self.connection_handler, args=()).start()
-
+        print("online")
+        print("send <person> <message>")
+        print("menu")
+        print("close")
+        print("")
+        print("all messages will be printed automaticly")
+        
 
         while True:
-            option = self.get_menu()
+            command = input(":>")
 
-            if option == "1":
-                pass
-            if option == "1":
-                pass
-            if option == "1":
-                pass
+            
 
     def send_message(self):
         print()
@@ -48,7 +41,8 @@ class program():
             print()
 
     def server_connection():
-
+        sock = s.socket()
+        sock.connect("—")
 
 
         
@@ -115,7 +109,7 @@ class program():
         
         client_sock.close()
 
-"""
+
 
     def get_data(self):
         print()
@@ -204,5 +198,5 @@ class program():
             del info
             del data
             t.sleep(1)
-
+"""
 start_point = program()
