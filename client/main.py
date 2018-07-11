@@ -1,6 +1,5 @@
 import threading as th
 import tkinter as tk
-import tkinter.font as font
 import socket as s
 import time as t
 import os
@@ -11,14 +10,10 @@ import os
 
 """
 
-#default_font = font.Font(family="microsoft sans serif", size="32" )
-
 #creating a composite widget that combines the list box and a scroll bar
 class scrollListBox(tk.Frame):
     def __init__(self, parent, on_click=None):
         super().__init__(parent)
-
-        self.font=font
 
         #parent object reference's
         self.parent = parent
@@ -55,7 +50,7 @@ class messageFrame(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.font=font
+
 
         #parent reference
         self.parent = parent
@@ -80,10 +75,8 @@ class application(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.font=font
-
         #creating widget definitions
-        self.splitPane = tk.PanedWindow(self)
+        self.splitPane = tk.PanedWindow(self, handlepad=16, showhandle=True)
         self.pane1_contacts = scrollListBox(self)
         self.pane2_messages = messageFrame(self)
 
@@ -93,12 +86,17 @@ class application(tk.Tk):
         #packing widgets
         self.splitPane.pack(fill=tk.BOTH,expand=1)
 
-
-
+        #create handler threads
+        self.connections = th.Thread(target=self.connection_handler)
+        self.sync = th.Thread(target=self.server_sync)
 
         tk.mainloop()
 
     def connection_handler(self):
+        pass
+    def server_sync(self):
+        pass
+
 
         
 
