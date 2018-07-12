@@ -60,7 +60,7 @@ class messageFrame(tk.Frame):
                 print("ArgCommand failed")
                 pass
         else:
-            if event.char === "\n":
+            if event.char == "\n":
                 self.ArgCommand()
     
     def on_click(self):
