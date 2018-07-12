@@ -38,11 +38,13 @@ class messageFrame(tk.Frame):
         self.ArgOn_click = on_click
 
         #creating widget definitions
-        self.messageView = scrollListBox(self)
+        self.messageView = scrollListBox(self, on_click=self.on_click)
         self.entryBox = tk.Entry(self)
         self.enterButton = tk.Button(self, text="enter", command=self.update)
 
-        #defining attributes
+        #defining bindings
+        self.entryBox.bind("<Key>", self.command)
+
 
         #packing widgets
         self.messageView.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
@@ -50,12 +52,16 @@ class messageFrame(tk.Frame):
         self.enterButton.pack(side=tk.RIGHT)
 
         #defining command functions
-    def command(self):
-        try:
-            self.ArgCommand()
-        except:
-            print("ArgCommand failed")
-            pass
+    def command(self, event=None):
+        if event == None:
+            try:
+                self.ArgCommand()
+            except:
+                print("ArgCommand failed")
+                pass
+        else:
+            if event.char === "\n":
+                self.ArgCommand()
     
     def on_click(self):
         try:
@@ -87,22 +93,18 @@ class application(tk.Tk):
         self.client_details = {}
 
         #defining other toplevel widgets
-        self.server_selector = serverSelectWindow
+        self.server_selector = serverSelectWindow()
 
         #creating widget definitions
         self.splitPane = tk.PanedWindow(self, handlepad=16, showhandle=True)
         self.pane1_contacts = scrollListBox(self)
         self.pane2_messages = messageFrame(self)
-
+        #linking widgets together
         self.splitPane.add(self.pane1_contacts)
         self.splitPane.add(self.pane2_messages)
 
         #setting up bindings
-        self.pane1_contacts.listbox.bind("<Button-1>", func=self.change_active_client)
 
-        self.pane2_messages.enterButton["command"]=self.send_message
-
-        
 
         #packing widgets
         self.splitPane.pack(fill=tk.BOTH,expand=1)
