@@ -16,6 +16,8 @@ class scrollListBox(tk.Frame):
     def __init__(self, parent, on_click=None):
         super().__init__(parent)
 
+        #
+
         #creating widget definitions
         self.listbox = tk.Listbox(self)
         self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
@@ -117,9 +119,6 @@ class application(tk.Tk):
 
     #binding fumctions
     def send_message(self):
-
-        
-
         self.pane2_messages.messageView.listbox.insert(tk.END, self.pane2_messages.entryBox.get())
 
     def change_active_client(self):
