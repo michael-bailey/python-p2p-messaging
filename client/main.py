@@ -13,6 +13,11 @@ COMMUNICATION_PORT = 800
     - think about Network address translation
     - could use pyqt5
 
+    - using a hybrid model of a peer to peer network with the help of a server
+        to handle user infomation : ip address, name, 
+        no data is saves permenently on the server
+
+
 """
 
 #creating a composite widget that combines the list box and a scroll bar
@@ -90,11 +95,18 @@ class messageFrame(tk.Frame):
     def list_update(self):
         pass
     
+class errorWindow(tk.Toplevel):
+    def __init__(self, master = None, message="no error message"):
+            super().__init__(master, cnf, **kw)
+            tk.Label(self, Text=message).pack()
 
 class serverSelectWindow(tk.Toplevel):
     def __init__(self):
         super().__init__()
+
+        #create a list box to select the server to fetch client infomation from
         self.selector = scrollListBox(self)
+
         try:
             self.servers = js.load(open("servers.json", "r"))
         except:
@@ -148,10 +160,15 @@ class application(tk.Tk):
         
         tk.mainloop()
 
-    #functions
+    # this function sends a message 
+    # to the currently selected client 
+    # from the client selection pane
+    # this is called when the send button
+    # is clicked (may add this when the enter button is also pressed) 
     def send_message(self):
         self.pane2_messages.list_insert(self.pane2_messages.entry_get())
 
+    # called when any of the clents in the client selection window is clicked 
     def change_active_client(self):
         pass
 
@@ -174,9 +191,10 @@ class application(tk.Tk):
             
 
     def server_sync(self):
-
-
         t.sleep(1)
 
 
-a = application()
+
+x = DEBUG
+while x == 1:
+    eval(input)
