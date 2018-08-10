@@ -6,21 +6,37 @@ import time as t
 import sys
 import os
 
-COMMUNICATION_PORT = 800
+DEBUG = 0
 
 """
 ------------notes------------
     - think about Network address translation
     - could use pyqt5
 
+    @server
     - using a hybrid model of a peer to peer network with the help of a server
-        to handle user infomation : ip address, name, 
-        no data is saves permenently on the server
+        to handle user infomation : ip address, userName, user iD 
+        no data is saved permenently on the server
+    - protocol for this is sent in plain text with 
+        null bytes seperating each part of the message
+        structure of a transmission follows
+        userName
+
+
+    @client
+    - data is sent in a plain text format 
+        with null bytes seperating the parts of the message
+        structure of a message follows
 
 
 """
 
-#creating a composite widget that combines the list box and a scroll bar
+# creating a composite widget that 
+# adds a scroll bar to the list widget
+# this enables: 
+#  - scrolling down chat messages
+#  - scrolling down active clients
+#  - scrolling down servers
 class scrollListBox(tk.Frame):
     def __init__(self, parent, on_click=None):
         super().__init__(parent)
@@ -44,34 +60,34 @@ class scrollListBox(tk.Frame):
 
     def clear(self):
         self.listbox.delete(0, tk.END)
+    
+    def scrollYSet(value):
+        self.scrollbar.set(tk.END)
 
+# this implements the classic file edit menu bar 
+# found at the top of many applications this 
+# will be used to add a exit button 
+# and other features in the future
 class menuBar(tk.Menu):
-    def __init__(self, parent, server=None):
+    def __init__(self, parent):
         super().__init__(parent)
-
-        #references from parameters
-        self.server = server
-
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
-
-        self.fileMenu.add_command(label="server", command=self.server)
-        self.fileMenu.add_separator()
         self.fileMenu.add_command(label="exit", command=sys.exit)
-
         self.add_cascade(label="file", menu=self.fileMenu)
 
+# this is a compound class that displays messages 
+# sent to and from a person and handles messages to be sent to a person
 class messageFrame(tk.Frame):
-    def __init__(self, parent, btn_command=None):
+    def __init__(self, parent, send_command=None):
         super().__init__(parent)
 
         #variables
-        self.button_command = btn_command
 
         #creating widget definitions
         self.listbox = scrollListBox(self)
         self.entryBox = tk.Entry(self)
-        self.enterButton = tk.Button(self, text="enter", command=self.button_command)
+        self.enterButton = tk.Button(self, text="enter", command=send_command)
 
         #defining bindings
 
@@ -95,53 +111,30 @@ class messageFrame(tk.Frame):
     def list_update(self):
         pass
     
+    def setYScroll():
+        pass
+# simple window to display any errors that may occur
 class errorWindow(tk.Toplevel):
     def __init__(self, master = None, message="no error message"):
-            super().__init__(master, cnf, **kw)
+            super().__init__(master)
             tk.Label(self, Text=message).pack()
-
-class serverSelectWindow(tk.Toplevel):
-    def __init__(self):
-        super().__init__()
-
-        #create a list box to select the server to fetch client infomation from
-        self.selector = scrollListBox(self)
-
-        try:
-            self.servers = js.load(open("servers.json", "r"))
-        except:
-            print("file not found")
-            pass
-
-    def on_click(self):
-        try:
-            self.ArgOn_click()
-        except:
-            print("click failed")
-            pass
-
-    def selected_server(self):
-        return 
 
 class application(tk.Tk):
     def __init__(self):
         super().__init__()
 
         #defining variables
-        self.active_client = 0
-        self.client_details = {}
+        self.active_client = None
+        self.selected_server = None
 
-        self.selected_server = "127.0.0.1"
-
-
-        #definig menu bars
-        self.menubar = menuBar(self, server=self.serverSelector)
+        #defining menu bars
+        self.menubar = menuBar(self)
         self.config(menu=self.menubar)        
 
         #creating widget definitions
         self.splitPane = tk.PanedWindow(self, handlepad=16, showhandle=True)
         self.pane1_contacts = scrollListBox(self)
-        self.pane2_messages = messageFrame(self, btn_command=self.send_message)
+        self.pane2_messages = messageFrame(self, send_command=self.send_message)
 
         #linking widgets together
         self.splitPane.add(self.pane1_contacts)
@@ -150,13 +143,9 @@ class application(tk.Tk):
         #packing widgets
         self.splitPane.pack(fill=tk.BOTH,expand=1)
 
-        #creating bindings
-
-        #styling
-
         #create handler threads
         self.connections = th.Thread(target=self.connection_handler)
-        self.sync = th.Thread(target=self.server_sync)
+        self.sync = th.Thread(target=self.server_syncronise)
         
         tk.mainloop()
 
@@ -167,19 +156,16 @@ class application(tk.Tk):
     # is clicked (may add this when the enter button is also pressed) 
     def send_message(self):
         self.pane2_messages.list_insert(self.pane2_messages.entry_get())
+        self.pane2_messages.set
 
     # called when any of the clents in the client selection window is clicked 
-    def change_active_client(self):
+    def change_reciever(self):
         pass
-
-    def serverSelector(self):
-        a = serverSelectWindow()
-        self.selected_server = a.get_selection()
 
     #thread functions
     def connection_handler(self):
         sock = s.socket()
-        sock.bind(("",COMMUNICATION_PORT))
+        sock.bind(("",0))
         sock.listen(7)
         
         while True:
@@ -187,14 +173,16 @@ class application(tk.Tk):
             print(address,"connected")
             # USER_ID:TIME:MESSAGE
             msg = str(connection_socket.recv(1024).decode())
-            msg.split(":")
+            msg.split("\x00")
             
-
-    def server_sync(self):
+    def server_syncronise(self):
+        print("tick!")
         t.sleep(1)
 
 
 
 x = DEBUG
 while x == 1:
-    eval(input)
+    eval(input(":>"))
+else:
+    a = application()
