@@ -134,11 +134,16 @@ class application(tk.Tk):
 
         #creating widget definitions
         self.splitPane = tk.PanedWindow(self, handlepad=16, showhandle=True)
-        self.pane1_contacts = scrollListBox(self)
+        self.pane1_selection = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
+        self.pane1_1_clients = scrollListBox(self)
+        self.pane1_2_servers = scrollListBox(self)
         self.pane2_messages = messageFrame(self, send_command=self.send_message)
 
         #linking widgets together
-        self.splitPane.add(self.pane1_contacts)
+        self.pane1_selection.add(self.pane1_1_clients)
+        self.pane1_selection.add(self.pane1_2_servers)
+
+        self.splitPane.add(self.pane1_selection)
         self.splitPane.add(self.pane2_messages)
 
         #packing widgets
