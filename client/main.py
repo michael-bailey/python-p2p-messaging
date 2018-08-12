@@ -10,8 +10,9 @@ DEBUG = 0
 
 """
 ------------notes------------
-    - think about Network address translation
-    - could use pyqt5
+    - could use pyqt5 (might be eiser than tkinter, also look better)
+    - think of way of implementing multiple messageing service (MMS)
+
 
     @server
     - using a hybrid model of a peer to peer network with the help of a server
@@ -21,7 +22,6 @@ DEBUG = 0
         null bytes seperating each part of the message
         structure of a transmission follows
         userName
-
 
     @client
     - data is sent in a plain text format 
@@ -61,8 +61,8 @@ class scrollListBox(tk.Frame):
     def clear(self):
         self.listbox.delete(0, tk.END)
     
-    def scrollYSet(value):
-        self.scrollbar.set(tk.END)
+    def scrollToBottom(self):
+        self.listbox.yview_scroll(tk.END, tk.UNITS)
 
 # this implements the classic file edit menu bar 
 # found at the top of many applications this 
@@ -111,8 +111,9 @@ class messageFrame(tk.Frame):
     def list_update(self):
         pass
     
-    def setYScroll():
-        pass
+    def scrollToBottom(self):
+        self.listbox.scrollToBottom()
+
 # simple window to display any errors that may occur
 class errorWindow(tk.Toplevel):
     def __init__(self, master = None, message="no error message"):
@@ -156,13 +157,19 @@ class application(tk.Tk):
     # is clicked (may add this when the enter button is also pressed) 
     def send_message(self):
         self.pane2_messages.list_insert(self.pane2_messages.entry_get())
-        self.pane2_messages.set
+        self.pane2_messages.scrollToBottom()
 
     # called when any of the clents in the client selection window is clicked 
     def change_reciever(self):
         pass
 
-    #thread functions
+    #this functions will be turned into a separate thread that 
+    #  - will listen for any incoming connections 
+    #  - allow them to connect 
+    #  - recieve data that is to be sent
+    #  - and then close the connection
+    #
+    # any data sent through will be parsed and saved to files and if needed will display it to the list box
     def connection_handler(self):
         sock = s.socket()
         sock.bind(("",0))
@@ -180,9 +187,11 @@ class application(tk.Tk):
         t.sleep(1)
 
 
-
+# this is to debug diffrent classes to see how they 
+# look in a window or to easily find errors
 x = DEBUG
 while x == 1:
-    eval(input(":>"))
+    window = tk.Tk()
+    eval(input("object window created\n:>"))
 else:
     a = application()
