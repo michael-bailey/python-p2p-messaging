@@ -28,7 +28,6 @@ DEBUG = 0
         with null bytes seperating the parts of the message
         structure of a message follows
 
-
 """
 
 # creating a composite widget that 
@@ -55,16 +54,23 @@ class scrollListBox(tk.Frame):
         self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
+    # inserts an item onto the list
     def insert(self, item):
         self.listbox.insert(tk.END, item)
 
+    # clears all items of the list
     def clear(self):
         self.listbox.delete(0, tk.END)
     
+    # moves the list box to the bottom
     def scrollToBottom(self):
         self.listbox.yview_scroll(tk.END, tk.UNITS)
+    
+    # returns the currently selected element
+    def get(self):
+        return self.listbox.get(tk.ACTIVE)
 
-# this implements the classic file edit menu bar 
+# this implements the classic file menu bar 
 # found at the top of many applications this 
 # will be used to add a exit button 
 # and other features in the future
@@ -96,62 +102,75 @@ class messageFrame(tk.Frame):
         self.entryBox.pack(fill=tk.X, expand=1, side=tk.LEFT )
         self.enterButton.pack(side=tk.RIGHT)
 
-        #defining command functions
-
+    # returns the contents of the entry box 
     def entry_get(self):
         return self.entryBox.get()
-
-    def list_get(self):
-        #return self.listbox.
         pass
 
+    # inherited from the scroll listbox
+    # changed the name to be easy to identify
+    def list_get(self):
+        return self.listbox.get()
+        pass
+
+    # inherited from the scroll listbox
+    # changed the name to be easy to identify
     def list_insert(self, text):
         self.listbox.insert(text)
     
-    def list_update(self):
-        pass
-    
+    # inherited from the scroll listbox
+    # changed the name to be easy to identify
     def scrollToBottom(self):
         self.listbox.scrollToBottom()
 
 # simple window to display any errors that may occur
+# it will be called when an error occurs 
 class errorWindow(tk.Toplevel):
     def __init__(self, master = None, message="no error message"):
             super().__init__(master)
             tk.Label(self, Text=message).pack()
 
 class application(tk.Tk):
+
+
+
+
+    
     def __init__(self):
         super().__init__()
 
-        #defining variables
+        #defining global variables
         self.active_client = None
         self.selected_server = None
 
-        #defining menu bars
+        #defining menu bar
         self.menubar = menuBar(self)
         self.config(menu=self.menubar)        
 
         #creating widget definitions
         self.splitPane = tk.PanedWindow(self, handlepad=16, showhandle=True)
-        self.pane1_selection = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
-        self.pane1_1_clients = scrollListBox(self)
-        self.pane1_2_servers = scrollListBox(self)
-        self.pane2_messages = messageFrame(self, send_command=self.send_message)
+        self.pane1Selection = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
+        self.pane1Clients = scrollListBox(self)
+        self.pane1Servers = scrollListBox(self)
+        self.pane2Messages = messageFrame(self, send_command=self.send_message)
 
         #linking widgets together
-        self.pane1_selection.add(self.pane1_1_clients)
-        self.pane1_selection.add(self.pane1_2_servers)
+        self.pane1Selection.add(self.pane1Clients)
+        self.pane1Selection.add(self.pane1Servers)
 
-        self.splitPane.add(self.pane1_selection)
-        self.splitPane.add(self.pane2_messages)
+        self.splitPane.add(self.pane1Selection)
+        self.splitPane.add(self.pane2Messages)
 
         #packing widgets
         self.splitPane.pack(fill=tk.BOTH,expand=1)
 
         #create handler threads
-        self.connections = th.Thread(target=self.connection_handler)
-        self.sync = th.Thread(target=self.server_syncronise)
+        self.connections = th.Thread(target=self.connection_handler).start()
+        self.sync = th.Thread(target=self.server_syncronise).start()
+
+        for i in open("servers.txt").readlines():
+            self.pane1Servers.insert(str(i))
+
         
         tk.mainloop()
 
@@ -161,8 +180,8 @@ class application(tk.Tk):
     # this is called when the send button
     # is clicked (may add this when the enter button is also pressed) 
     def send_message(self):
-        self.pane2_messages.list_insert(self.pane2_messages.entry_get())
-        self.pane2_messages.scrollToBottom()
+        self.pane2Messages.list_insert(self.pane2Messages.entry_get())
+        self.pane2Messages.scrollToBottom()
 
     # called when any of the clents in the client selection window is clicked 
     def change_reciever(self):
@@ -179,21 +198,47 @@ class application(tk.Tk):
         sock = s.socket()
         sock.bind(("",0))
         sock.listen(7)
-        
+
+        #whole code is in a repetative loop so if any error occurs the thread wonnt break 
         while True:
-            connection_socket, address = sock.accept()
-            print(address,"connected")
-            # USER_ID:TIME:MESSAGE
-            msg = str(connection_socket.recv(1024).decode())
-            msg.split("\x00")
-            
+            try:
+                connection_socket, address = sock.accept()
+                print(address,"connected")
+                # USER_ID \x00 TIME\x00 MESSAGE
+                # turns 
+                msg = str(connection_socket.recv(1024).decode())
+                msg.split("\x00")
+
+                # main decoding logic is here
+
+
+            except Exception as e:
+                        # display error window
+                        errorWindow(e)
+
+        
     def server_syncronise(self):
-        print("tick!")
-        t.sleep(1)
+        server_socket = s.socket()
+
+        while True:
+            if self.pane1Servers.get() == '' or self.pane1Servers.get() == None:
+                try:
+                    IP = self.pane1Servers.get()
+
+                    server_socket.connect((IP,0))
+
+                    while IP == self.pane1Servers.get():
+                        server_socket.recv(65536)
+
+                        self.pane1Clients.clear()
 
 
+                except Exception as e:
+                    errorWindow(e)
+            
 # this is to debug diffrent classes to see how they 
 # look in a window or to easily find errors
+
 x = DEBUG
 while x == 1:
     window = tk.Tk()
