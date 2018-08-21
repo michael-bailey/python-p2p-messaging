@@ -1,10 +1,18 @@
+import threading as th
 import socket as s
 import os
-import threading as th
+
 
 class connection(th.Thread):
     name = ""
     address = ""
-    UID ""
-    s.socket: socket = None
+    UID = ""
+    socket = None
+
+
+    def __init__(self, name, address, UID, socket):
+        self.name = name
+        self.address = address
+        self.UID = UID
+        self.socket = socket
 

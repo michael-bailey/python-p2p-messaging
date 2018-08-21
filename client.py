@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import threading as th
 import tkinter as tk
 import socket as s
@@ -131,11 +133,6 @@ class errorWindow(tk.Toplevel):
             tk.Label(self, Text=message).pack()
 
 class application(tk.Tk):
-
-
-
-
-    
     def __init__(self):
         super().__init__()
 
@@ -221,16 +218,17 @@ class application(tk.Tk):
         server_socket = s.socket()
 
         while True:
-            if self.pane1Servers.get() == '' or self.pane1Servers.get() == None:
+            if self.pane1Servers.get() == '':
                 try:
                     IP = self.pane1Servers.get()
 
                     server_socket.connect((IP,0))
 
                     while IP == self.pane1Servers.get():
-                        server_socket.recv(65536)
+                        clients = server_socket.recv(65536)
 
                         self.pane1Clients.clear()
+
 
 
                 except Exception as e:
