@@ -8,7 +8,6 @@ import time as t
 import sys
 import os
 
-DEBUG = 0
 
 """
 ------------notes------------
@@ -65,7 +64,7 @@ class scrollListBox(tk.Frame):
         self.listbox.delete(0, tk.END)
     
     # moves the list box to the bottom
-    def scrollToBottom(self):
+    def reset_Scroll(self):
         self.listbox.yview_scroll(tk.END, tk.UNITS)
     
     # returns the currently selected element
@@ -122,8 +121,8 @@ class messageFrame(tk.Frame):
     
     # inherited from the scroll listbox
     # changed the name to be easy to identify
-    def scrollToBottom(self):
-        self.listbox.scrollToBottom()
+    def reset_Scroll(self):
+        self.listbox.reset_Scroll()
 
 # simple window to display any errors that may occur
 # it will be called when an error occurs 
@@ -132,13 +131,14 @@ class errorWindow(tk.Toplevel):
             super().__init__(master)
             tk.Label(self, Text=message).pack()
 
+# the main program
 class application(tk.Tk):
     def __init__(self):
         super().__init__()
 
         #defining global variables
         self.active_client = None
-        self.selected_server = None
+        self.active_server = None
 
         #defining menu bar
         self.menubar = menuBar(self)
@@ -178,10 +178,11 @@ class application(tk.Tk):
     # is clicked (may add this when the enter button is also pressed) 
     def send_message(self):
         self.pane2Messages.list_insert(self.pane2Messages.entry_get())
-        self.pane2Messages.scrollToBottom()
+        self.pane2Messages.reset_Scroll()
 
     # called when any of the clents in the client selection window is clicked 
     def change_reciever(self):
+        self.sele
         pass
 
     #this functions will be turned into a separate thread that 
@@ -229,17 +230,15 @@ class application(tk.Tk):
 
                         self.pane1Clients.clear()
 
+                        client_details = clients.split("\x01") # verticle spacing
+
+                        for i in range(len(client_details)-1):
+                            client_details[i] = client_details[i].split("\x00") # horizontal spacing
+
+
 
 
                 except Exception as e:
                     errorWindow(e)
             
-# this is to debug diffrent classes to see how they 
-# look in a window or to easily find errors
-
-x = DEBUG
-while x == 1:
-    window = tk.Tk()
-    eval(input("object window created\n:>"))
-else:
     a = application()
