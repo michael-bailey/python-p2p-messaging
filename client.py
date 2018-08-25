@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import threading as th
+import signal as sig
 import tkinter as tk
 import socket as s
 import json as js
@@ -8,11 +9,13 @@ import time as t
 import sys
 import os
 
+DEBUG = False
 
 """
 ------------notes------------
     - could use pyqt5 (might be eiser than tkinter, also look better)
     - think of way of implementing multiple messageing service (MMS)
+    - connections will be using the udp protocol
 
 
     @server
@@ -29,6 +32,61 @@ import os
         with null bytes seperating the parts of the message
         structure of a message follows
 
+
+    $classes
+    - scrollListBox
+        properties:
+            listBox : tk.Listbox
+            scrollBar : tk.scrollbar
+        methods:
+            getActive
+            Insert
+            Clear
+        events:
+            onClick
+            onDoubleClick
+
+    - messageFrame
+        properties
+            listBox : scrollListBox
+            entryBox : tk.Entry
+            enterButton : tk.Button
+        methods:
+            entry_get
+            listInsert
+            listClear
+            getActive
+        events:
+            onButtonClick
+
+    
+    - menuBar
+        properties:
+            fileMenu : tk.menu
+        methods:
+        events:
+            exitClicked
+        
+
+    - application
+        properties:
+            paneRoot
+            paneLeft
+            PaneLeftClient
+            paneLeftServer
+            PaneRootMessages
+            MenuBar
+
+            activeClient
+            activeServer
+        methods:
+            sendMessage
+            connectionsThread
+
+            
+
+
+
 """
 
 # creating a composite widget that 
@@ -44,43 +102,39 @@ class scrollListBox(tk.Frame):
         self.on_click = on_click
 
         #creating widget definitions
-        self.listbox = tk.Listbox(self)
-        self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
+        self.listBox = tk.Listbox(self)
+        self.scrollBar = tk.Scrollbar(self, orient=tk.VERTICAL)
 
-        #set bindings and events
-        self.listbox.config(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.config(command=self.listbox.yview)
+        #set bindings and events for the scroll bar so contents scroll
+        self.listBox.config(yscrollcommand=self.scrollBar.set)
+        self.scrollBar.config(command=self.listBox.yview)
 
         #packing widgets
-        self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.listBox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollBar.pack(side=tk.RIGHT, fill=tk.Y)
 
     # inserts an item onto the list
     def insert(self, item):
-        self.listbox.insert(tk.END, item)
+        self.listBox.insert(tk.END, item)
 
     # clears all items of the list
     def clear(self):
-        self.listbox.delete(0, tk.END)
-    
-    # moves the list box to the bottom
-    def reset_Scroll(self):
-        self.listbox.yview_scroll(tk.END, tk.UNITS)
+        self.listBox.delete(0, tk.END)
     
     # returns the currently selected element
     def get(self):
-        return self.listbox.get(tk.ACTIVE)
+        return self.listBox.get(tk.ACTIVE)
 
 # this implements the classic file menu bar 
 # found at the top of many applications this 
 # will be used to add a exit button 
 # and other features in the future
 class menuBar(tk.Menu):
-    def __init__(self, parent):
+    def __init__(self, parent, exitClicked=sys.exit):
         super().__init__(parent)
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
-        self.fileMenu.add_command(label="exit", command=sys.exit)
+        self.fileMenu.add_command(label="exit", command=exit_cmd())
         self.add_cascade(label="file", menu=self.fileMenu)
 
 # this is a compound class that displays messages 
@@ -89,17 +143,15 @@ class messageFrame(tk.Frame):
     def __init__(self, parent, send_command=None):
         super().__init__(parent)
 
-        #variables
-
         #creating widget definitions
-        self.listbox = scrollListBox(self)
+        self.listBox = scrollListBox(self)
         self.entryBox = tk.Entry(self)
         self.enterButton = tk.Button(self, text="enter", command=send_command)
 
         #defining bindings
 
         #packing widgets
-        self.listbox.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        self.listBox.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
         self.entryBox.pack(fill=tk.X, expand=1, side=tk.LEFT )
         self.enterButton.pack(side=tk.RIGHT)
 
@@ -111,18 +163,18 @@ class messageFrame(tk.Frame):
     # inherited from the scroll listbox
     # changed the name to be easy to identify
     def list_get(self):
-        return self.listbox.get()
+        return self.listBox.get()
         pass
 
     # inherited from the scroll listbox
     # changed the name to be easy to identify
     def list_insert(self, text):
-        self.listbox.insert(text)
+        self.listBox.insert(text)
     
     # inherited from the scroll listbox
     # changed the name to be easy to identify
     def reset_Scroll(self):
-        self.listbox.reset_Scroll()
+        self.listBox.reset_Scroll()
 
 # simple window to display any errors that may occur
 # it will be called when an error occurs 
@@ -139,34 +191,34 @@ class application(tk.Tk):
         #defining global variables
         self.active_client = None
         self.active_server = None
+        self.exit = False
 
         #defining menu bar
         self.menubar = menuBar(self)
         self.config(menu=self.menubar)        
 
         #creating widget definitions
-        self.splitPane = tk.PanedWindow(self, handlepad=16, showhandle=True)
-        self.pane1Selection = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
-        self.pane1Clients = scrollListBox(self)
-        self.pane1Servers = scrollListBox(self)
-        self.pane2Messages = messageFrame(self, send_command=self.send_message)
+        self.paneRoot = tk.PanedWindow(self, handlepad=16, showhandle=True)
+        self.paneLeft = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
+        self.paneLeftClients = scrollListBox(self)
+        self.paneLeftServers = scrollListBox(self)
+        self.PaneRootMessages = messageFrame(self, send_command=self.send_message)
 
         #linking widgets together
-        self.pane1Selection.add(self.pane1Clients)
-        self.pane1Selection.add(self.pane1Servers)
-
-        self.splitPane.add(self.pane1Selection)
-        self.splitPane.add(self.pane2Messages)
+        self.paneLeft.add(self.paneLeftClients)
+        self.paneLeft.add(self.paneLeftServers)
+        self.paneRoot.add(self.paneLeft)
+        self.paneRoot.add(self.PaneRootMessages)
 
         #packing widgets
-        self.splitPane.pack(fill=tk.BOTH,expand=1)
+        self.paneRoot.pack(fill=tk.BOTH,expand=1)
 
         #create handler threads
-        self.connections = th.Thread(target=self.connection_handler).start()
-        self.sync = th.Thread(target=self.server_syncronise).start()
+        #self.connections = th.Thread(target=self.connection_handler).start()  not in use causes the gui to lag when trying to recieve data from th sever due to wait times
+        self.thread = th.Thread(target=self.connections_Thread).start()    
 
         for i in open("servers.txt").readlines():
-            self.pane1Servers.insert(str(i))
+            self.paneLeftServers.insert(str(i))
 
         
         tk.mainloop()
@@ -174,15 +226,18 @@ class application(tk.Tk):
     # this function sends a message 
     # to the currently selected client 
     # from the client selection pane
-    # this is called when the send button
-    # is clicked (may add this when the enter button is also pressed) 
+    # it sends a message to the server to collect user conention info
+    # it then send a message to the collected address
     def send_message(self):
-        self.pane2Messages.list_insert(self.pane2Messages.entry_get())
-        self.pane2Messages.reset_Scroll()
+        if True:
+            self.PaneRootMessages.list_insert(self.PaneRootMessages.entry_get())
+            self.PaneRootMessages.reset_Scroll()
 
     # called when any of the clents in the client selection window is clicked 
     def change_reciever(self):
-        self.sele
+        pass
+
+    def change_Server(self):
         pass
 
     #this functions will be turned into a separate thread that 
@@ -192,53 +247,21 @@ class application(tk.Tk):
     #  - and then close the connection
     #
     # any data sent through will be parsed and saved to files and if needed will display it to the list box
-    def connection_handler(self):
-        sock = s.socket()
-        sock.bind(("",0))
-        sock.listen(7)
+    def connections_Thread(self):
+        while not self.exit:
 
-        #whole code is in a repetative loop so if any error occurs the thread wonnt break 
-        while True:
-            try:
-                connection_socket, address = sock.accept()
-                print(address,"connected")
-                # USER_ID \x00 TIME\x00 MESSAGE
-                # turns 
-                msg = str(connection_socket.recv(1024).decode())
-                msg.split("\x00")
+            if self.paneLeftServers.get() != "":
+                print(self.paneLeftServers.get().strip("\n"))
 
-                # main decoding logic is here
+    # signal handlers
+    def CTRL_C(self):
+        self.exit()
 
-
-            except Exception as e:
-                        # display error window
-                        errorWindow(e)
-
-        
-    def server_syncronise(self):
-        server_socket = s.socket()
-
-        while True:
-            if self.pane1Servers.get() == '':
-                try:
-                    IP = self.pane1Servers.get()
-
-                    server_socket.connect((IP,0))
-
-                    while IP == self.pane1Servers.get():
-                        clients = server_socket.recv(65536)
-
-                        self.pane1Clients.clear()
-
-                        client_details = clients.split("\x01") # verticle spacing
-
-                        for i in range(len(client_details)-1):
-                            client_details[i] = client_details[i].split("\x00") # horizontal spacing
-
-
-
-
-                except Exception as e:
-                    errorWindow(e)
+if DEBUG == True:
+    while True:
+        try:
+            exec(input(":>"))                
+        except Exception as e:
+            print(e)
             
-    a = application()
+a = application()

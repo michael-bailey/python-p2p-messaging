@@ -1,3 +1,1 @@
-https://www.tutorialspoint.com/cryptography/public_key_encryption.htm for the first part of the rsa algorythm
-https://en.wikibooks.org/wiki/Algorithm_Implementation/Mathematics/Extended_Euclidean_algorithm for encryption implementation
-https://www.youtube.com/watch?v=M7kEpw1tn50 a basic overveiw of the RSA encryption process and example
+https://docs.python.org/2/howto/sockets.html used to find out how to use select with non blockig sockets
