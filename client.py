@@ -89,6 +89,13 @@ DEBUG = False
 
 """
 
+
+
+
+
+
+
+
 # creating a composite widget that 
 # adds a scroll bar to the list widget
 # this enables: 
@@ -125,6 +132,15 @@ class scrollListBox(tk.Frame):
     def get(self):
         return self.listBox.get(tk.ACTIVE)
 
+		
+		
+		
+		
+		
+		
+		
+		
+		
 # this implements the classic file menu bar 
 # found at the top of many applications this 
 # will be used to add a exit button 
@@ -134,9 +150,15 @@ class menuBar(tk.Menu):
         super().__init__(parent)
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
-        self.fileMenu.add_command(label="exit", command=exit_cmd())
+        self.fileMenu.add_command(label="exit", command=exitClicked)
         self.add_cascade(label="file", menu=self.fileMenu)
 
+		
+		
+		
+		
+		
+		
 # this is a compound class that displays messages 
 # sent to and from a person and handles messages to be sent to a person
 class messageFrame(tk.Frame):
@@ -176,6 +198,11 @@ class messageFrame(tk.Frame):
     def reset_Scroll(self):
         self.listBox.reset_Scroll()
 
+		
+		
+		
+		
+		
 # simple window to display any errors that may occur
 # it will be called when an error occurs 
 class errorWindow(tk.Toplevel):
@@ -183,6 +210,15 @@ class errorWindow(tk.Toplevel):
             super().__init__(master)
             tk.Label(self, Text=message).pack()
 
+			
+			
+			
+			
+			
+			
+			
+			
+			
 # the main program
 class application(tk.Tk):
     def __init__(self):
@@ -192,6 +228,8 @@ class application(tk.Tk):
         self.active_client = None
         self.active_server = None
         self.exit = False
+        self.server_socket = s.socket()
+        self.client_socket = s.socket
 
         #defining menu bar
         self.menubar = menuBar(self)
@@ -210,24 +248,20 @@ class application(tk.Tk):
         self.paneRoot.add(self.paneLeft)
         self.paneRoot.add(self.PaneRootMessages)
 
-        #packing widgets
-        self.paneRoot.pack(fill=tk.BOTH,expand=1)
 
         #create handler threads
-        #self.connections = th.Thread(target=self.connection_handler).start()  not in use causes the gui to lag when trying to recieve data from th sever due to wait times
         self.thread = th.Thread(target=self.connections_Thread).start()    
 
+        #packing widgets
+        self.paneRoot.pack(fill=tk.BOTH,expand=1)
         for i in open("servers.txt").readlines():
             self.paneLeftServers.insert(str(i))
 
         
         tk.mainloop()
 
-    # this function sends a message 
-    # to the currently selected client 
-    # from the client selection pane
-    # it sends a message to the server to collect user conention info
-    # it then send a message to the collected address
+    #this function sends a message
+    
     def send_message(self):
         if True:
             self.PaneRootMessages.list_insert(self.PaneRootMessages.entry_get())
@@ -252,16 +286,13 @@ class application(tk.Tk):
 
             if self.paneLeftServers.get() != "":
                 print(self.paneLeftServers.get().strip("\n"))
+        join()
 
     # signal handlers
     def CTRL_C(self):
-        self.exit()
+        self.exit = true
+        sys.exit()
 
-if DEBUG == True:
-    while True:
-        try:
-            exec(input(":>"))                
-        except Exception as e:
-            print(e)
-            
+
+      
 a = application()
