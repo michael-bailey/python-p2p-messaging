@@ -127,14 +127,14 @@ class scrollListBox(tk.Frame):
 
 # this implements the classic file menu bar 
 # found at the top of many applications this 
-# will be used to add a exit button 
+# will be used to add a exit butto
 # and other features in the future
 class menuBar(tk.Menu):
     def __init__(self, parent, exitClicked=sys.exit):
         super().__init__(parent)
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
-        self.fileMenu.add_command(label="exit", command=exit_cmd())
+        self.fileMenu.add_command(label="exit", command=exitClicked())
         self.add_cascade(label="file", menu=self.fileMenu)
 
 # this is a compound class that displays messages 
@@ -263,5 +263,5 @@ if DEBUG == True:
             exec(input(":>"))                
         except Exception as e:
             print(e)
-            
-a = application()
+else:
+    a = application()
