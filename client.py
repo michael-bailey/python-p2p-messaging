@@ -150,11 +150,7 @@ class menuBar(tk.Menu):
         super().__init__(parent)
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
-<<<<<<< HEAD
-        self.fileMenu.add_command(label="exit", command=exitClicked())
-=======
         self.fileMenu.add_command(label="exit", command=exitClicked)
->>>>>>> 680c5605cc900f85c518f86988e78f1b31d4fbed
         self.add_cascade(label="file", menu=self.fileMenu)
 
 		
@@ -290,26 +286,13 @@ class application(tk.Tk):
 
             if self.paneLeftServers.get() != "":
                 print(self.paneLeftServers.get().strip("\n"))
-        join()
+        th.join()
 
     # signal handlers
     def CTRL_C(self):
-<<<<<<< HEAD
-        self.exit()
-
-if DEBUG == True:
-    while True:
-        try:
-            exec(input(":>"))                
-        except Exception as e:
-            print(e)
-else:
-    a = application()
-=======
-        self.exit = true
+        self.exit = True
         sys.exit()
 
 
       
 a = application()
->>>>>>> 680c5605cc900f85c518f86988e78f1b31d4fbed
