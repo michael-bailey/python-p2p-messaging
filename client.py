@@ -83,10 +83,6 @@ DEBUG = False
             sendMessage
             connectionsThread
 
-            
-
-
-
 """
 
 
@@ -180,13 +176,13 @@ class messageFrame(tk.Frame):
     # returns the contents of the entry box 
     def entry_get(self):
         return self.entryBox.get()
-        pass
+        
 
     # inherited from the scroll listbox
     # changed the name to be easy to identify
     def list_get(self):
         return self.listBox.get()
-        pass
+        
 
     # inherited from the scroll listbox
     # changed the name to be easy to identify
@@ -195,8 +191,6 @@ class messageFrame(tk.Frame):
     
     # inherited from the scroll listbox
     # changed the name to be easy to identify
-    def reset_Scroll(self):
-        self.listBox.reset_Scroll()
 
 		
 		
@@ -265,7 +259,6 @@ class application(tk.Tk):
     def send_message(self):
         if True:
             self.PaneRootMessages.list_insert(self.PaneRootMessages.entry_get())
-            self.PaneRootMessages.reset_Scroll()
 
     # called when any of the clents in the client selection window is clicked 
     def change_reciever(self):
@@ -274,6 +267,9 @@ class application(tk.Tk):
     def change_Server(self):
         pass
 
+    def exit_application(self):
+        for i in th.enumerate():
+            i.join(2)
     #this functions will be turned into a separate thread that 
     #  - will listen for any incoming connections 
     #  - allow them to connect 
@@ -286,7 +282,6 @@ class application(tk.Tk):
 
             if self.paneLeftServers.get() != "":
                 print(self.paneLeftServers.get().strip("\n"))
-        th.join()
 
     # signal handlers
     def CTRL_C(self):
