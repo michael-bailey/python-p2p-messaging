@@ -87,11 +87,6 @@ DEBUG = False
 
 
 
-
-
-
-
-
 # creating a composite widget that 
 # adds a scroll bar to the list widget
 # this enables: 
@@ -130,13 +125,6 @@ class scrollListBox(tk.Frame):
 
 		
 		
-		
-		
-		
-		
-		
-		
-		
 # this implements the classic file menu bar 
 # found at the top of many applications this 
 # will be used to add a exit butto
@@ -150,11 +138,7 @@ class menuBar(tk.Menu):
         self.add_cascade(label="file", menu=self.fileMenu)
 
 		
-		
-		
-		
-		
-		
+			
 # this is a compound class that displays messages 
 # sent to and from a person and handles messages to be sent to a person
 class messageFrame(tk.Frame):
@@ -192,11 +176,15 @@ class messageFrame(tk.Frame):
     # inherited from the scroll listbox
     # changed the name to be easy to identify
 
-		
-		
-		
-		
-		
+
+
+class loginBox(tk.Toplevel):
+    def __init__(self, master = None, cnf = {}, **kw):
+            return super().__init__(master, cnf, **kw)
+
+            self.userLabel = tk.Label()
+
+			
 # simple window to display any errors that may occur
 # it will be called when an error occurs 
 class errorWindow(tk.Toplevel):
@@ -204,15 +192,8 @@ class errorWindow(tk.Toplevel):
             super().__init__(master)
             tk.Label(self, Text=message).pack()
 
-			
-			
-			
-			
-			
-			
-			
-			
-			
+
+
 # the main program
 class application(tk.Tk):
     def __init__(self):
@@ -289,5 +270,6 @@ class application(tk.Tk):
         sys.exit()
 
 
-      
+if "user.login" not in os.listdir():
+
 a = application()
