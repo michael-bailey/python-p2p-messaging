@@ -1,6 +1,6 @@
 client to server
-to connect 		: uid|username|ipaddress|connect
-to leave   		: uid|username|ipaddress|close
+to connect 			: uid|username|ipaddress|connect
+to leave   			: uid|username|ipaddress|close
 to get details		: uid|username|ipaddress|<name>
 
 client to client
