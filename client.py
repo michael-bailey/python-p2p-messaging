@@ -132,6 +132,7 @@ class scrollListBox(tk.Frame):
 class menuBar(tk.Menu):
     def __init__(self, parent, exitClicked=sys.exit):
         super().__init__(parent)
+        
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
         self.fileMenu.add_command(label="exit", command=exitClicked)
@@ -182,15 +183,8 @@ class loginBox(tk.Toplevel):
     def __init__(self, master = None, cnf = {}, **kw):
             return super().__init__(master, cnf, **kw)
 
-            self.userLabel = tk.Label()
-
-			
-# simple window to display any errors that may occur
-# it will be called when an error occurs 
-class errorWindow(tk.Toplevel):
-    def __init__(self, master = None, message="no error message"):
-            super().__init__(master)
-            tk.Label(self, Text=message).pack()
+            self.userLabel = tk.Label(self, text="username : ").grid(0,0)
+            self.userLabel = tk.Label(self, text="username : ").grid(0,0)
 
 
 
@@ -201,10 +195,19 @@ class application(tk.Tk):
 
         #defining global variables
         self.active_client = None
-        self.active_server = None
+        self.active_server = "127.0.0.1"
         self.exit = False
+        self.contact_list = []
+
+        # creating user details.
+        try:
+            details_file = open("user.login", "r")
+        #print an error message to describe what happened
+        except:
+            print("file deleted between the start and the creation of the main program object")
+
         self.server_socket = s.socket()
-        self.client_socket = s.socket
+        self.server_socket.setblocking(0)
 
         #defining menu bar
         self.menubar = menuBar(self)
@@ -238,19 +241,37 @@ class application(tk.Tk):
     #this function sends a message
     
     def send_message(self):
-        if True:
-            self.PaneRootMessages.list_insert(self.PaneRootMessages.entry_get())
+        client = self.PaneRootMessages.entry_get()
+
+        self.server_socket.send("")
+        
 
     # called when any of the clents in the client selection window is clicked 
-    def change_reciever(self):
-        pass
+    def change_client(self):
+        
 
     def change_Server(self):
-        pass
+        self.server_socket.send("" + )
 
     def exit_application(self):
         for i in th.enumerate():
             i.join(2)
+
+
+    # this will recieve data from the server in a non blocking fashion (to not prevent program execution)
+
+    def server_sync(self):
+        while true:
+            try:
+                with th.Lock() as lock:
+                    # try recieveing data fron the server (will error if there is no data)
+                    self.contact_list = self.server_socket.recv(65535).split(",")
+            
+            # no data or another error occured
+            except:
+                print("error occured")
+                pass
+
     #this functions will be turned into a separate thread that 
     #  - will listen for any incoming connections 
     #  - allow them to connect 
@@ -260,9 +281,10 @@ class application(tk.Tk):
     # any data sent through will be parsed and saved to files and if needed will display it to the list box
     def connections_Thread(self):
         while not self.exit:
-
             if self.paneLeftServers.get() != "":
                 print(self.paneLeftServers.get().strip("\n"))
+
+        print("connection thread exiting...")
 
     # signal handlers
     def CTRL_C(self):
@@ -271,5 +293,6 @@ class application(tk.Tk):
 
 
 if "user.login" not in os.listdir():
+    loginWindow = loginBox()
 
 a = application()
