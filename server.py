@@ -54,11 +54,6 @@ while True:
                 #check to see if this user is acctually connected to the server
                 if request[0] in userID:
 
-
-
-
-
-
                                                                                     # erase all details of the user logging in
                     index = readSockets.index(i)                                    # get current sockets placement in the lists
                     userName[index] = 0                                             # delete the sockets from the lists
@@ -81,7 +76,9 @@ while True:
                 print(userString)
 
     for i in write:
+        # if its the first value (used for the listening erver position) do nothing
         if i == None:
             pass
+        # 
         else:
             i.send(userString)
