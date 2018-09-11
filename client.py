@@ -13,7 +13,7 @@ DEBUG = False
 
 """
 ------------notes------------
-    - could use pyqt5 (might be eiser than tkinter, also look better)
+    - could use pyqt5 (might be easier than tkinter, also look better)
     - think of way of implementing multiple messageing service (MMS)
     - connections will be using the udp protocol
 
@@ -296,3 +296,5 @@ if "user.login" not in os.listdir():
     loginWindow = loginBox()
 
 a = application()
+
+

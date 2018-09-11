@@ -1,5 +1,9 @@
+| references a Null character (ascii code <0x00>)
+
+
+
 client to server
-to connect 			: uid|username|ipaddress|connect
+to connect 			: uid|username|ipaddress
 to leave   			: uid|username|ipaddress|close
 to get details		: uid|username|ipaddress|<name>
 

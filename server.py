@@ -6,6 +6,7 @@ from select import select
 import socket as s
 import os
 
+
 # set the server to listen for connections and set them to be non blocking to be used instead of using many threads 
 serverSocket = s.socket()
 serverSocket.setblocking(0)
@@ -19,6 +20,17 @@ userAddr = [None]
 readSockets = [serverSocket]
 writeSockets = [None]
 errorSockets = [None]
+
+# simple function to get the list of users
+def userList():
+    x = ""
+    for i in userList:
+        x += i
+    return x
+
+def userDetails(username):
+    pass
+
 
 #main server program
 while True:
@@ -42,11 +54,13 @@ while True:
             readSockets.append(tmpSocket)                                        
             writeSockets.append(tmpSocket)
 
+            userID.append(i[0])
+            username.append(i[1])
+            userAddr.append(i[2])
+
 
         # otherwise a client has sent a request to the server
         else:                                                                   
-
-
 
             #null byte is used as a sepatator as it is very unlikely that a user will find a way to enter this control character
             request = i.recv(65536).decode().split("\x00")                      #
@@ -64,7 +78,7 @@ while True:
                     userAddr.remove(0)
                     readSockets.remove(i) 
                     writeSockets.remove(i)
-            if request in userName:
+            if request[3] in userName:
                 writeSockets[i].send(userAddr[userID.index(request)])           # find the address of the user requested
             else:
                 i.send("error")
@@ -79,6 +93,16 @@ while True:
         # if its the first value (used for the listening erver position) do nothing
         if i == None:
             pass
-        # 
+        # other wise send a list of all connected users (usernames) to the server
+    
         else:
-            i.send(userString)
+            for i in userName:
+
+                # dont put 'none' on 
+                if i == None:
+                    pass
+                else:
+                    i.send(UserList)
+                        
+
+            
