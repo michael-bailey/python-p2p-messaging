@@ -10,7 +10,7 @@ import os
 # set the server to listen for connections and set them to be non blocking to be used instead of using many threads 
 serverSocket = s.socket()
 serverSocket.setblocking(0)
-serverSocket.bind(("", 0))
+serverSocket.bind(("", 9000))
 serverSocket.listen()
 
 userName = [None]

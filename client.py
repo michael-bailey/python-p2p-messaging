@@ -10,12 +10,13 @@ import sys
 import os
 
 DEBUG = False
+SERVERPORT = 9000
+CLIENTPORT = 9001
 
 """
 ------------notes------------
     - could use pyqt5 (might be easier than tkinter, also look better)
     - think of way of implementing multiple messageing service (MMS)
-    - connections will be using the udp protocol
 
 
     @server
@@ -178,14 +179,14 @@ class messageFrame(tk.Frame):
     # changed the name to be easy to identify
 
 
-
+"""
 class loginBox(tk.Toplevel):
     def __init__(self, master = None, cnf = {}, **kw):
             return super().__init__(master, cnf, **kw)
 
             self.userLabel = tk.Label(self, text="username : ").grid(0,0)
             self.userLabel = tk.Label(self, text="username : ").grid(0,0)
-
+"""
 
 
 # the main program
@@ -228,7 +229,7 @@ class application(tk.Tk):
 
 
         #create handler threads
-        self.thread = th.Thread(target=self.connections_Thread).start()    
+        self.thread = th.Thread(target=self.connections_Thread, daemon=True).start()    
 
         #packing widgets
         self.paneRoot.pack(fill=tk.BOTH,expand=1)
@@ -248,10 +249,10 @@ class application(tk.Tk):
 
     # called when any of the clents in the client selection window is clicked 
     def change_client(self):
-        
+        pass
 
     def change_Server(self):
-        self.server_socket.send("" + )
+        self.server_socket.send("" + userid)
 
     def exit_application(self):
         for i in th.enumerate():
@@ -260,41 +261,31 @@ class application(tk.Tk):
 
     # this will recieve data from the server in a non blocking fashion (to not prevent program execution)
 
-    def server_sync(self):
-        while true:
-            try:
-                with th.Lock() as lock:
-                    # try recieveing data fron the server (will error if there is no data)
-                    self.contact_list = self.server_socket.recv(65535).split(",")
-            
-            # no data or another error occured
-            except:
-                print("error occured")
-                pass
 
-    #this functions will be turned into a separate thread that 
-    #  - will listen for any incoming connections 
-    #  - allow them to connect 
-    #  - recieve data that is to be sent
-    #  - and then close the connection
-    #
-    # any data sent through will be parsed and saved to files and if needed will display it to the list box
+    #these functions will be turned into a separate thread that 
+    #  this will check for any client connecting
     def connections_Thread(self):
+
+
         while not self.exit:
-            if self.paneLeftServers.get() != "":
-                print(self.paneLeftServers.get().strip("\n"))
+            print("connection thread running")
 
-        print("connection thread exiting...")
+    def server_ping(self):
+        while not self.exit:
+        self.paneLeftClients.clear()
+        for i in self.server_socket.recv(65535).decode().split(","):
+            self.paneLeftClients.insert(i)
 
-    # signal handlers
+
+    # signal hadlers (probably not going to use for a while)
     def CTRL_C(self):
         self.exit = True
         sys.exit()
 
-
+"""
 if "user.login" not in os.listdir():
     loginWindow = loginBox()
-
+"""
 a = application()
 
 
