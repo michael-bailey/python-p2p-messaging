@@ -10,7 +10,7 @@ import os
 # set the server to listen for connections and set them to be non blocking to be used instead of using many threads 
 serverSocket = s.socket()
 serverSocket.setblocking(0)
-serverSocket.bind("", 0)
+serverSocket.bind(("", 0))
 serverSocket.listen()
 
 userName = [None]
@@ -18,13 +18,13 @@ userID = [None]
 userAddr = [None]
 
 readSockets = [serverSocket]
-writeSockets = [None]
-errorSockets = [None]
+writeSockets = [serverSocket]
+errorSockets = [serverSocket]
 
 # simple function to get the list of users
 def userList():
     x = ""
-    for i in userList:
+    for i in userName:
         x += i
     return x
 
@@ -41,7 +41,7 @@ while True:
     #if there are any sockets to be read then iterate through them
     for i in read:
 
-        # new client connected as the main server socket it is readable
+        # new client connected as the main server socket as it is readable
         if i == serverSocket:
             
             # get the new clients socket from the accept function
@@ -55,13 +55,13 @@ while True:
             writeSockets.append(tmpSocket)
 
             userID.append(i[0])
-            username.append(i[1])
+            userName.append(i[1])
             userAddr.append(i[2])
 
 
         # otherwise a client has sent a request to the server
         else:                                                                   
-
+            print(i)
             #null byte is used as a sepatator as it is very unlikely that a user will find a way to enter this control character
             request = i.recv(65536).decode().split("\x00")                      #
             if request[3] == "quit":
@@ -83,11 +83,7 @@ while True:
             else:
                 i.send("error")
                     
-    for j in range(1, len(userAddr)-1):                                         # generates a list of all users
-                pass
-                index = writeSockets.index(j)
-                userString = userString + userName[j] + ","
-                print(userString)
+    
 
     for i in write:
         # if its the first value (used for the listening erver position) do nothing
@@ -102,7 +98,7 @@ while True:
                 if i == None:
                     pass
                 else:
-                    i.send(UserList)
+                    i.send(userList())
                         
 
             
