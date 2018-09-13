@@ -179,14 +179,37 @@ class messageFrame(tk.Frame):
     # changed the name to be easy to identify
 
 
-"""
+
 class loginBox(tk.Toplevel):
     def __init__(self, master = None, cnf = {}, **kw):
-            return super().__init__(master, cnf, **kw)
+        super().__init__(master, cnf, **kw)
 
-            self.userLabel = tk.Label(self, text="username : ").grid(0,0)
-            self.userLabel = tk.Label(self, text="username : ").grid(0,0)
-"""
+        self.userLabel = tk.Label(self, text="username : ").grid(row = 0, column = 0)
+        self.userLabel = tk.Label(self, text="password : ").grid(row = 1, column = 0)
+        self.userNameInput = tk.Entry(self).grid(row = 0, column = 1)
+        self.passWordInput = tk.Entry(self).grid(row = 1, column = 1)
+        self.enterButton = tk.Button(text = "enter", command = self.enter).grid(row = 2, column = 1)
+        self.exitButton = tk.Button(text = "close", command = self.exit).grid(row = 2, column = 0)
+
+        tk.mainloop()
+
+    def enter():
+        loginfile = open("user.login", "w")
+
+        # encoding them in base 64 to prevent users modifying there 
+        # username or password without knowing what they are doing 
+        # as this is used for the unique identifyer later in the program
+        username = self.userNameInput.get().encode("base64_codec")
+        password = self.passWordInput.get().encode("base64_codec")
+
+        loginfile.write(username)
+        loginfile.write(password)
+
+
+
+        
+    def exit(self):
+        sys.exit(0)
 
 
 # the main program
@@ -196,9 +219,11 @@ class application(tk.Tk):
 
         #defining global variables
         self.active_client = None
-        self.active_server = "127.0.0.1"
+        self.active_server = ""
         self.exit = False
         self.contact_list = []
+
+
 
         # creating user details.
         try:
@@ -229,7 +254,8 @@ class application(tk.Tk):
 
 
         #create handler threads
-        self.thread = th.Thread(target=self.connections_Thread, daemon=True).start()    
+        self.connectionThread = th.Thread(target=self.connections_Thread, daemon=True).start()    
+        self.serverPing = th.Thread(target=self.server_ping, daemon=True).start()
 
         #packing widgets
         self.paneRoot.pack(fill=tk.BOTH,expand=1)
@@ -242,8 +268,9 @@ class application(tk.Tk):
     #this function sends a message
     
     def send_message(self):
-        client = self.PaneRootMessages.entry_get()
+        client = self.active_client
 
+        print("selected client is {} and message is"self.clientclient)
         self.server_socket.send("")
         
 
@@ -265,16 +292,18 @@ class application(tk.Tk):
     #these functions will be turned into a separate thread that 
     #  this will check for any client connecting
     def connections_Thread(self):
-
+        ClientSocket = 
 
         while not self.exit:
-            print("connection thread running")
+            print("client is listenening")
 
+
+    # not acctually a standard ping
     def server_ping(self):
         while not self.exit:
-        self.paneLeftClients.clear()
-        for i in self.server_socket.recv(65535).decode().split(","):
-            self.paneLeftClients.insert(i)
+            self.paneLeftClients.clear()
+            for i in self.server_socket.recv(65535).decode().split(","):
+                self.paneLeftClients.insert(i)
 
 
     # signal hadlers (probably not going to use for a while)
