@@ -193,7 +193,7 @@ class loginBox(tk.Toplevel):
 
         tk.mainloop()
 
-    def enter():
+    def enter(self):
         loginfile = open("user.login", "w")
 
         # encoding them in base 64 to prevent users modifying there 
@@ -224,16 +224,26 @@ class application(tk.Tk):
         self.contact_list = []
 
 
-
         # creating user details.
         try:
             details_file = open("user.login", "r")
+            details = details_file.readlines()
+
+            self.userName = details[0]
+            self.passwd = details[1]
+
+            self.userID = hash(details[0] + details[1])
+
+
         #print an error message to describe what happened
         except:
             print("file deleted between the start and the creation of the main program object")
 
-        self.server_socket = s.socket()
-        self.server_socket.setblocking(0)
+        
+        self.userID = hash(self.userName + self.passwd)
+
+
+
 
         #defining menu bar
         self.menubar = menuBar(self)
@@ -270,7 +280,7 @@ class application(tk.Tk):
     def send_message(self):
         client = self.active_client
 
-        print("selected client is {} and message is"self.clientclient)
+        print("selected client is {} and message is".format(self.clientclient))
         self.server_socket.send("")
         
 
@@ -279,7 +289,7 @@ class application(tk.Tk):
         pass
 
     def change_Server(self):
-        self.server_socket.send("" + userid)
+        self.server_socket.send("" + self.userID)
 
     def exit_application(self):
         for i in th.enumerate():
@@ -292,17 +302,27 @@ class application(tk.Tk):
     #these functions will be turned into a separate thread that 
     #  this will check for any client connecting
     def connections_Thread(self):
-        ClientSocket = 
+        ClientSocket = s.socket()
+        ClientSocket.bind("", CLIENTPORT)
+        ClientSocket.listen()
 
         while not self.exit:
-            print("client is listenening")
+            new_Sock, address = ClientSocket.accept()
 
+            recv_message = new_Sock.recv(65525).split("")
 
+            recvUID = recv_message[0]
+            recvUNAME = recv_message[1]
+            recvMESSAGE = recv_message[2]
+
+            open(recvUID, "a").write("" + t.strftime("%Y/%m/%d %H:%M") + recvMESSAGE)
+
+        
     # not acctually a standard ping
     def server_ping(self):
         while not self.exit:
             self.paneLeftClients.clear()
-            for i in self.server_socket.recv(65535).decode().split(","):
+            for i in self.server_socket.recv(65535).decode().split(""):
                 self.paneLeftClients.insert(i)
 
 
@@ -311,10 +331,10 @@ class application(tk.Tk):
         self.exit = True
         sys.exit()
 
-"""
+
 if "user.login" not in os.listdir():
     loginWindow = loginBox()
-"""
+
 a = application()
 
 

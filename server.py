@@ -5,11 +5,12 @@ import thread as th
 import socket as s
 import os
 
+SERVERPORT = 9000
 
 # set the server to use threads instead of non blocking sockets because i discovered daemon threads 
 serverSocket = s.socket()
 serverSocket.setblocking(0)
-serverSocket.bind(("", 9000))
+serverSocket.bind(("", SERVERPORT))
 serverSocket.listen()
 
 clients = []
@@ -17,8 +18,8 @@ clients = []
 # simple function to get the list of users
 def userList():
     x = ""
-    for i in userName:
-        x += i
+    for i in clients:
+        x = x + i.username + ","
     return x
 
 
@@ -34,12 +35,13 @@ class clientConnection(th.thread, s.socket):
         def func():
             while True:
                 message = self.Socket.recv(65535).split("")
-                print(os.get    , username, ":" , message)
+                print(os.getpid()    , username, ":" , message)
 
 
 
 
 
-while true:
+while True:
     tmpSocket , address = serverSocket.accept()
     print(address)
+    clients.append(th.thread(target = clientConnection, daemon=True, args=()).start())
