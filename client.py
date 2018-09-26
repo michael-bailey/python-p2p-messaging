@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
 
+# 
+
 import threading as th
-import signal as sig
 import tkinter as tk
 import socket as s
-import json as js
 import time as t
 import sys
 import os
 
-DEBUG = False
 SERVERPORT = 9000
 CLIENTPORT = 9001
+
+SPLITCHAR = "§"
+
+LOGINFILE = "login.txt"
+PRIMEFILE = "primes.txt"
+SERVERFILE = "server.txt"
+
+
 
 """
 ------------notes------------
@@ -99,15 +106,12 @@ class scrollListBox(tk.Frame):
         super().__init__(parent)
 
         self.on_click = on_click
-
         #creating widget definitions
         self.listBox = tk.Listbox(self)
         self.scrollBar = tk.Scrollbar(self, orient=tk.VERTICAL)
-
         #set bindings and events for the scroll bar so contents scroll
         self.listBox.config(yscrollcommand=self.scrollBar.set)
         self.scrollBar.config(command=self.listBox.yview)
-
         #packing widgets
         self.listBox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.scrollBar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -124,8 +128,6 @@ class scrollListBox(tk.Frame):
     def get(self):
         return self.listBox.get(tk.ACTIVE)
 
-		
-		
 # this implements the classic file menu bar 
 # found at the top of many applications this 
 # will be used to add a exit butto
@@ -139,10 +141,7 @@ class menuBar(tk.Menu):
         self.fileMenu.add_command(label="exit", command=exitClicked)
         self.add_cascade(label="file", menu=self.fileMenu)
 
-		
-			
-# this is a compound class that displays messages 
-# sent to and from a person and handles messages to be sent to a person
+# this displays messages to the user 
 class messageFrame(tk.Frame):
     def __init__(self, parent, send_command=None):
         super().__init__(parent)
@@ -151,8 +150,6 @@ class messageFrame(tk.Frame):
         self.listBox = scrollListBox(self)
         self.entryBox = tk.Entry(self)
         self.enterButton = tk.Button(self, text="enter", command=send_command)
-
-        #defining bindings
 
         #packing widgets
         self.listBox.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
@@ -163,13 +160,11 @@ class messageFrame(tk.Frame):
     def entry_get(self):
         return self.entryBox.get()
         
-
     # inherited from the scroll listbox
     # changed the name to be easy to identify
     def list_get(self):
         return self.listBox.get()
         
-
     # inherited from the scroll listbox
     # changed the name to be easy to identify
     def list_insert(self, text):
@@ -178,44 +173,55 @@ class messageFrame(tk.Frame):
     # inherited from the scroll listbox
     # changed the name to be easy to identify
 
+# creates a window to login
+class loginBox(tk.Tk):
+    def __init__(self):
+        super().__init__()
 
+        self.title("login")
+        
+        #create object
+        self.userLabel = tk.Label(self, text="username : ")
+        self.passwordLabel = tk.Label(self, text="password : ")
+        self.usernameInput = tk.Entry(self)
+        self.passwordInput = tk.Entry(self, show="*")
+        self.enterButton = tk.Button(self,text = "enter", command = self.enter)
+        self.exitButton = tk.Button(self,text = "close", command = self.exit)
 
-class loginBox(tk.Toplevel):
-    def __init__(self, master = None, cnf = {}, **kw):
-        super().__init__(master, cnf, **kw)
+        # put them on the screen
+        self.userLabel.grid(row = 0, column = 0)
+        self.passwordLabel.grid(row = 1, column = 0)
+        self.usernameInput.grid(row = 0, column = 1)
+        self.passwordInput.grid(row = 1, column = 1)
+        self.enterButton.grid(row = 2, column = 1)
+        self.exitButton.grid(row = 2, column = 0)
 
-        self.userLabel = tk.Label(self, text="username : ").grid(row = 0, column = 0)
-        self.userLabel = tk.Label(self, text="password : ").grid(row = 1, column = 0)
-        self.userNameInput = tk.Entry(self).grid(row = 0, column = 1)
-        self.passWordInput = tk.Entry(self).grid(row = 1, column = 1)
-        self.enterButton = tk.Button(text = "enter", command = self.enter).grid(row = 2, column = 1)
-        self.exitButton = tk.Button(text = "close", command = self.exit).grid(row = 2, column = 0)
 
         tk.mainloop()
 
     def enter(self):
-        loginfile = open("user.login", "w")
+        print("pressed") 
+        # as this is used for the unique identifier later in the program
+        username = self.usernameInput.get()
+        password = self.passwordInput.get()
 
-        # encoding them in base 64 to prevent users modifying there 
-        # username or password without knowing what they are doing 
-        # as this is used for the unique identifyer later in the program
-        username = self.userNameInput.get().encode("base64_codec")
-        password = self.passWordInput.get().encode("base64_codec")
+        loginFile = open(LOGINFILE, "w")
 
-        loginfile.write(username)
-        loginfile.write(password)
+        loginFile.write(username + "\n")
+        loginFile.write(password + "\n")
+        loginFile.close()
 
+        self.destroy()
 
-
-        
     def exit(self):
         sys.exit(0)
-
 
 # the main program
 class application(tk.Tk):
     def __init__(self):
         super().__init__()
+
+        self.title("")
 
         #defining global variables
         self.active_client = None
@@ -224,45 +230,31 @@ class application(tk.Tk):
         self.contact_list = []
 
 
-        # creating user details.
+        # getting user details from a file
         try:
-            details_file = open("user.login", "r")
+            details_file = open(LOGINFILE, "r")
             details = details_file.readlines()
-
             self.userName = details[0]
             self.passwd = details[1]
-
             self.userID = hash(details[0] + details[1])
-
-
         #print an error message to describe what happened
         except:
             print("file deleted between the start and the creation of the main program object")
 
-        
-        self.userID = hash(self.userName + self.passwd)
-
-
-
-
         #defining menu bar
         self.menubar = menuBar(self)
         self.config(menu=self.menubar)        
-
         #creating widget definitions
         self.paneRoot = tk.PanedWindow(self, handlepad=16, showhandle=True)
         self.paneLeft = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
         self.paneLeftClients = scrollListBox(self)
         self.paneLeftServers = scrollListBox(self)
         self.PaneRootMessages = messageFrame(self, send_command=self.send_message)
-
         #linking widgets together
         self.paneLeft.add(self.paneLeftClients)
         self.paneLeft.add(self.paneLeftServers)
         self.paneRoot.add(self.paneLeft)
         self.paneRoot.add(self.PaneRootMessages)
-
-
         #create handler threads
         self.connectionThread = th.Thread(target=self.connections_Thread, daemon=True).start()    
         self.serverPing = th.Thread(target=self.server_ping, daemon=True).start()
@@ -278,10 +270,7 @@ class application(tk.Tk):
     #this function sends a message
     
     def send_message(self):
-        client = self.active_client
-
-        print("selected client is {} and message is".format(self.clientclient))
-        self.server_socket.send("")
+        pass
         
 
     # called when any of the clents in the client selection window is clicked 
@@ -291,25 +280,17 @@ class application(tk.Tk):
     def change_Server(self):
         self.server_socket.send("" + self.userID)
 
-    def exit_application(self):
-        for i in th.enumerate():
-            i.join(2)
-
-
-    # this will recieve data from the server in a non blocking fashion (to not prevent program execution)
-
-
     #these functions will be turned into a separate thread that 
     #  this will check for any client connecting
     def connections_Thread(self):
         ClientSocket = s.socket()
-        ClientSocket.bind("", CLIENTPORT)
+        ClientSocket.bind(("", CLIENTPORT))
         ClientSocket.listen()
 
         while not self.exit:
             new_Sock, address = ClientSocket.accept()
 
-            recv_message = new_Sock.recv(65525).split("")
+            recv_message = new_Sock.recv(65525).split(SPLITCHAR)
 
             recvUID = recv_message[0]
             recvUNAME = recv_message[1]
@@ -317,13 +298,13 @@ class application(tk.Tk):
 
             open(recvUID, "a").write("" + t.strftime("%Y/%m/%d %H:%M") + recvMESSAGE)
 
-        
-    # not acctually a standard ping
+    # this gets updated info on current users 
     def server_ping(self):
         while not self.exit:
             self.paneLeftClients.clear()
-            for i in self.server_socket.recv(65535).decode().split(""):
+            for i in self.server_socket.recv(65535).decode().split(SPLITCHAR):
                 self.paneLeftClients.insert(i)
+
 
 
     # signal hadlers (probably not going to use for a while)
@@ -332,9 +313,10 @@ class application(tk.Tk):
         sys.exit()
 
 
-if "user.login" not in os.listdir():
+# if the login file doesnt exist then open login prompt
+if LOGINFILE not in os.listdir():
     loginWindow = loginBox()
+    # wait a second for the file to write
+    t.sleep(1)
 
 a = application()
-
-

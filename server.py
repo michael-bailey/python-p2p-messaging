@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #top line is a shebang for ease of use in linux
 
-import thread as th
+import threading as th
 import socket as s
 import os
 
@@ -23,7 +23,7 @@ def userList():
     return x
 
 
-class clientConnection(th.thread, s.socket):
+class clientConnection():
     def __init__(self, UID, username, IP, socket):
         self.Socket = socket
         self.userName
