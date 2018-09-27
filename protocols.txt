@@ -1,11 +1,13 @@
-| references a Null character (ascii code <0x00>)
+| references a Null character (ascii code <§>)
 
 
 
 client to server
-to connect 			: uid|username|ipaddress
-to leave   			: uid|username|ipaddress|close
-to get details		: uid|username|ipaddress|<name>
+to connect 			: uid|username
+to leave   			: uid|username|close
+to get details		: uid|username|<name>
+
+client details      :client1|client2|clientN
 
 client to client
 send a message		: uid|username|message

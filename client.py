@@ -107,11 +107,13 @@ class scrollListBox(tk.Frame):
 
         self.on_click = on_click
         #creating widget definitions
-        self.listBox = tk.Listbox(self)
+        self.listBox = tk.Listbox(self, )
         self.scrollBar = tk.Scrollbar(self, orient=tk.VERTICAL)
         #set bindings and events for the scroll bar so contents scroll
         self.listBox.config(yscrollcommand=self.scrollBar.set)
         self.scrollBar.config(command=self.listBox.yview)
+        self.listBox.bind('<<ListboxSelect>>', self.on_click)
+
         #packing widgets
         self.listBox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.scrollBar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -217,18 +219,22 @@ class loginBox(tk.Tk):
         sys.exit(0)
 
 # the main program
-class application(tk.Tk):
+class Program(tk.Tk):
     def __init__(self):
         super().__init__()
 
         self.title("")
 
-        #defining global variables
-        self.active_client = None
+        #defining program variables
+        self.active_client = ""
         self.active_server = ""
         self.exit = False
-        self.contact_list = []
-
+        self.changeServer = False
+        self.userName = ""
+        self.passwd = ""
+        self.userID = ""
+        self.clients = []
+        self.protocolString = "" + self.userID + SPLITCHAR + self.userName + SPLITCHAR
 
         # getting user details from a file
         try:
@@ -248,7 +254,7 @@ class application(tk.Tk):
         self.paneRoot = tk.PanedWindow(self, handlepad=16, showhandle=True)
         self.paneLeft = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
         self.paneLeftClients = scrollListBox(self)
-        self.paneLeftServers = scrollListBox(self)
+        self.paneLeftServers = scrollListBox(self, on_click=self.change_Server)
         self.PaneRootMessages = messageFrame(self, send_command=self.send_message)
         #linking widgets together
         self.paneLeft.add(self.paneLeftClients)
@@ -269,16 +275,18 @@ class application(tk.Tk):
 
     #this function sends a message
     
-    def send_message(self):
+    def send_message(self, event):
+        print("sending a message")
         pass
         
-
     # called when any of the clents in the client selection window is clicked 
-    def change_client(self):
+    def change_client(self, event):
+        print("changeing client")
         pass
 
-    def change_Server(self):
-        self.server_socket.send("" + self.userID)
+    def change_Server(self, event):
+        print("changeing server")
+        self.change_Server = True
 
     #these functions will be turned into a separate thread that 
     #  this will check for any client connecting
@@ -288,35 +296,37 @@ class application(tk.Tk):
         ClientSocket.listen()
 
         while not self.exit:
-            new_Sock, address = ClientSocket.accept()
-
-            recv_message = new_Sock.recv(65525).split(SPLITCHAR)
-
-            recvUID = recv_message[0]
-            recvUNAME = recv_message[1]
-            recvMESSAGE = recv_message[2]
+            
 
             open(recvUID, "a").write("" + t.strftime("%Y/%m/%d %H:%M") + recvMESSAGE)
 
-    # this gets updated info on current users 
+    # this gets users from a server
     def server_ping(self):
+
+        servSocket = s.socket()
+        currentConnection = ""
+
         while not self.exit:
-            self.paneLeftClients.clear()
-            for i in self.server_socket.recv(65535).decode().split(SPLITCHAR):
-                self.paneLeftClients.insert(i)
+            if self.paneLeftServers.get() != currentConnection:
+                if currentConnection == "":
+                    servSocket.connect((self.paneLeftServers.get(), SERVERPORT))
+                    servSocket.send(self.protocolString)
+                else:
+                    servSocket.send(self.protocolString + "close")
 
 
 
-    # signal hadlers (probably not going to use for a while)
-    def CTRL_C(self):
-        self.exit = True
-        sys.exit()
 
 
-# if the login file doesnt exist then open login prompt
-if LOGINFILE not in os.listdir():
-    loginWindow = loginBox()
-    # wait a second for the file to write
-    t.sleep(1)
+def main():
 
-a = application()
+        # if the login file doesnt exist then open login prompt
+    if LOGINFILE not in os.listdir():
+        loginWindow = loginBox()
+        # wait a second for the file to write
+        t.sleep(1)
+
+    P = Program()
+
+if __name__ == "__main__":
+    main()
