@@ -226,14 +226,15 @@ class Program(tk.Tk):
         self.title("")
 
         #defining program variables
-        self.active_client = ""
+        self.active_client_uid = ""
         self.active_server = ""
         self.exit = False
         self.changeServer = False
         self.userName = ""
         self.passwd = ""
         self.userID = ""
-        self.clients = []
+
+        self.clients = {}
         self.protocolString = "" + self.userID + SPLITCHAR + self.userName + SPLITCHAR
 
         # getting user details from a file
@@ -243,6 +244,8 @@ class Program(tk.Tk):
             self.userName = details[0]
             self.passwd = details[1]
             self.userID = hash(details[0] + details[1])
+
+
         #print an error message to describe what happened
         except:
             print("file deleted between the start and the creation of the main program object")
@@ -286,19 +289,29 @@ class Program(tk.Tk):
 
     def change_Server(self, event):
         print("changeing server")
-        self.change_Server = True
+        self.changeServer = True
 
     #these functions will be turned into a separate thread that 
     #  this will check for any client connecting
     def connections_Thread(self):
         ClientSocket = s.socket()
         ClientSocket.bind(("", CLIENTPORT))
-        ClientSocket.listen()
+        ClientSocket.listen(5)
+
 
         while not self.exit:
             
+            tmpSocket, address = ClientSocket.accept()
+            
+            data = tmpsocket.recv(65535).decode().split(SPLITCHAR)
 
-            open(recvUID, "a").write("" + t.strftime("%Y/%m/%d %H:%M") + recvMESSAGE)
+            # update the chat file for the connecting user
+            file = open(str(data[1]) + ".txt", "a").append("" + t.strftime("%Y/%m/%d %H:%M") + " " + data)
+
+            # current user is open on the main screen
+            if self.active_client = data[1]:
+                for i in range(open(data[0]))
+
 
     # this gets users from a server
     def server_ping(self):
