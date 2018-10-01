@@ -1,15 +1,20 @@
 | references a Null character (ascii code <§>)
-
+| uid is unique to each user so only it is required for further requests to the server
+| each client keeps a copy of the current connected clients which is updated when the server sends data
 
 
 client to server
 to connect 			: uid|username
-to leave   			: uid|username|close
-to get details		: uid|username|<name>
+to leave   			: uid|close
 
+<<<<<<< HEAD
 client details      {
                         UID:[username,
                     }
+=======
+server to client
+client details      :clientn|client2|clientN
+>>>>>>> af18e34b09bc1aa1ab1b2b1049ac62519155f64a
 
 client to client
-send a message		: uid|username|message
+send a message		: uid|message
