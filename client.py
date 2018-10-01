@@ -294,6 +294,8 @@ class Program(tk.Tk):
     #these functions will be turned into a separate thread that 
     #  this will check for any client connecting
     def connections_Thread(self):
+        pass
+        """
         ClientSocket = s.socket()
         ClientSocket.bind(("", CLIENTPORT))
         ClientSocket.listen(5)
@@ -311,7 +313,7 @@ class Program(tk.Tk):
             # current user is open on the main screen
             if self.active_client = data[1]:
                 for i in range(open(data[0]))
-
+"""
 
     # this gets users from a server
     def server_ping(self):
@@ -326,6 +328,9 @@ class Program(tk.Tk):
                     servSocket.send(self.protocolString)
                 else:
                     servSocket.send(self.protocolString + "close")
+                    servSocket.close()
+                    servSocket.connect((self.paneLeftServers.get()))
+                    
 
 
 
