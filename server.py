@@ -45,7 +45,8 @@ class clientConnection():
     def recieve_Data(self):
         while True:
             message = self.Socket.recv(65535).decode().split(SPLITCHAR)
-            if message[2] = ""
+            if message[2] == "":
+                
 			
     def send_Data(self):
         self.Socket.send(getClients())
