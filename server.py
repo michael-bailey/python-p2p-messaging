@@ -3,6 +3,9 @@
 
 import threading as th
 import socket as s
+import json as js
+import time as t
+import errno
 import os
 
 # print(s.gethostbyname(s.gethostname()))
@@ -17,47 +20,73 @@ serverSocket.listen()
 
 clients = []
 
+def removeClient(object):
+    index = clients.index(object)
+    print("removeing object", clients[index], "from the clients")
+    clients.remove(clients[index])
+    for i in clients:
+        print(i)
 
 def getClients():
     clientDict = {}
 
     for i in clients:
-        clientDict[i.userid] = [i.username, i.ip]
+        clientDict[i.Uid] = [i.username, i.ip]
 
     return clientDict
 
 class clientConnection():
     def __init__(self, UID, username, IP, socket):
         super().__init__()
-		
+
 	    #create properties
         self.Socket = socket
-        self.userName = ""
-        self.ip = IP
+        self.username = username
+        self.ip = IP[0]
         self.Uid = UID
+        self.exit = False
 
-        self.recv_thread = th.Thread(target = self.recieve_Data, daemon=True, args=(self))
-        self.send_thread = th.Thread(target = self.send_Data, daemon=True, args=(self))
+        self.recv_thread = th.Thread(target = self.recieve_Data, daemon=True, args=())
+        self.send_thread = th.Thread(target = self.send_Data, daemon=True, args=())
 
+    def start(self):
         self.recv_thread.start()
         self.send_thread.start()
     
     def recieve_Data(self):
-        while True:
-            message = self.Socket.recv(65535).decode().split(SPLITCHAR)
-            if message[2] == "":
-                
-			
-    def send_Data(self):
-        self.Socket.send(getClients())
+        while not self.exit:
+            try:
+                message = self.Socket.recv(65535).decode().strip('\n').split(SPLITCHAR)
+                print(message)
 
-		
+                # if the close message is sent then delete everything about the client
+                if message[2] == "close":
+                    print("closing connection", self.ip)
+                    self.close()
+            except s.error as error:
+                print("error occured. closing client", self.ip[0], "errno", error.errno)
+
+                self.close()
+
+    def send_Data(self):
+        while not self.exit:
+            with th.Lock():
+                self.Socket.send(js.dumps(getClients()).encode("ascii"))
+            t.sleep(1)
+
+    def close(self):
+
+        self.Socket.close()
+        removeClient(self)
+        self.exit = True
+
 while True:
     tmpSocket , address = serverSocket.accept()
     print(address)
-    details = tmpSocket.recv(65535).decode().split(SPLITCHAR)
+    details = tmpSocket.recv(65535).decode().strip("\n").split(SPLITCHAR)
     try:
-        clients.append(th.Thread(target = clientConnection, daemon=True, args=(details[0], details[1], address, tmpSocket)).start())
+        clients.append(clientConnection(details[0], details[1], address, tmpSocket))
+        clients[-1].start()
     except:
         tmpSocket.close()
     print(clients)
