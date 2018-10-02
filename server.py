@@ -11,7 +11,7 @@ import os
 # print(s.gethostbyname(s.gethostname()))
 
 SERVERPORT = 9000
-SPLITCHAR = "§"
+SPLITCHAR = "`"
 
 # set the server to use threads instead of non blocking sockets because i discovered daemon threads
 serverSocket = s.socket()
@@ -22,7 +22,7 @@ clients = []
 
 def removeClient(object):
     index = clients.index(object)
-    print("removeing object", clients[index], "from the clients")
+    print("removing object", clients[index], "from the clients")
     clients.remove(clients[index])
     for i in clients:
         print(i)
@@ -71,7 +71,11 @@ class clientConnection():
     def send_Data(self):
         while not self.exit:
             with th.Lock():
-                self.Socket.send(js.dumps(getClients()).encode("ascii"))
+                try:
+                    self.Socket.send(js.dumps(getClients()).encode("ascii"))
+                except s.error as error:
+                    print("error occured. closing client", self.ip[0], "errno", error.errno)
+                    self.close()
             t.sleep(1)
 
     def close(self):
@@ -85,10 +89,11 @@ while True:
     print(address)
     details = tmpSocket.recv(65535).decode().strip("\n").split(SPLITCHAR)
     try:
-        clients.append(clientConnection(details[0], details[1], address, tmpSocket))
-        clients[-1].start()
-    except:
+        tmpObject = clientConnection(details[0], details[1], address, tmpSocket)
+        clients.append(tmpObject)
+        print("debug1", clients)
+        clients[clients.index(tmpObject)].start()
+        print(clients)
+    except Exception as e:
+        print(e.args)
         tmpSocket.close()
-    print(clients)
-
-

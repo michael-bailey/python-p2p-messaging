@@ -5,6 +5,7 @@
 import threading as th
 import tkinter as tk
 import socket as s
+import json as js
 import time as t
 import sys
 import os
@@ -12,7 +13,7 @@ import os
 SERVERPORT = 9000
 CLIENTPORT = 9001
 
-SPLITCHAR = "§"
+SPLITCHAR = '\x00'
 
 LOGINFILE = "login.txt"
 PRIMEFILE = "primes.txt"
@@ -112,7 +113,6 @@ class scrollListBox(tk.Frame):
         #set bindings and events for the scroll bar so contents scroll
         self.listBox.config(yscrollcommand=self.scrollBar.set)
         self.scrollBar.config(command=self.listBox.yview)
-        self.listBox.bind('<<ListboxSelect>>', self.on_click)
 
         #packing widgets
         self.listBox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -284,11 +284,10 @@ class Program(tk.Tk):
         
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
-        print("changeing client")
-        pass
+        self.active_server = self.paneLeftServers.get()
 
     def change_Server(self, event):
-        print("changeing server")
+        self.active_server = self.paneLeftServers.get()
         self.changeServer = True
 
     #these functions will be turned into a separate thread that 
@@ -313,7 +312,7 @@ class Program(tk.Tk):
             # current user is open on the main screen
             if self.active_client = data[1]:
                 for i in range(open(data[0]))
-"""
+        """
 
     # this gets users from a server
     def server_ping(self):
@@ -322,22 +321,12 @@ class Program(tk.Tk):
         currentConnection = ""
 
         while not self.exit:
-            if self.paneLeftServers.get() != currentConnection:
-                if currentConnection == "":
-                    servSocket.connect((self.paneLeftServers.get(), SERVERPORT))
-                    servSocket.send(self.protocolString)
-                else:
-                    servSocket.send(self.protocolString + "close")
-                    servSocket.close()
-                    servSocket.connect((self.paneLeftServers.get()))
-                    
-
-
-
+            if currentConnection != self.active_server:
+                servSocket.send(self.protocolString + SPLITCHAR + "close")
+            
 
 
 def main():
-
         # if the login file doesnt exist then open login prompt
     if LOGINFILE not in os.listdir():
         loginWindow = loginBox()

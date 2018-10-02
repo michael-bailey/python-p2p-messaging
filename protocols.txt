@@ -7,14 +7,9 @@ client to server
 to connect 			: uid|username
 to leave   			: uid|close
 
-<<<<<<< HEAD
 client details      {
-                        UID:[username,
+                        UID:[username,ipaddress]
                     }
-=======
-server to client
-client details      :clientn|client2|clientN
->>>>>>> af18e34b09bc1aa1ab1b2b1049ac62519155f64a
 
 client to client
 send a message		: uid|message
