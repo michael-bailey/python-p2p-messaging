@@ -94,7 +94,14 @@ SERVERFILE = "server.txt"
 
 """
 
-
+# used for debugging (an evaluation loop)
+def debug_console():
+    while True:
+        t.sleep(0.5)
+        try:
+            print(eval(input(":>")))
+        except e as error:
+            print(error.args)
 
 # creating a composite widget that 
 # adds a scroll bar to the list widget
@@ -293,6 +300,7 @@ class Program(tk.Tk):
     #these functions will be turned into a separate thread that 
     #  this will check for any client connecting
     def connections_Thread(self):
+        t.sleep(0.5)
         pass
         """
         ClientSocket = s.socket()
@@ -321,8 +329,16 @@ class Program(tk.Tk):
         currentConnection = ""
 
         while not self.exit:
+            t.sleep(0.5)
+            print()
             if currentConnection != self.active_server:
-                servSocket.send(self.protocolString + SPLITCHAR + "close")
+                try:
+                    servSocket.send(self.protocolString + SPLITCHAR + "close")
+                    servSocket.close()
+                    servSocket.connect((self.active_server, SERVERPORT))
+                    currentConnection = self.active_server
+                except Exception as e:
+                    print(e.args)
             
 
 
@@ -336,4 +352,5 @@ def main():
     P = Program()
 
 if __name__ == "__main__":
+    # th.Thread( target = debug_console, daemon=True).start()
     main()
