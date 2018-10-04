@@ -55,6 +55,7 @@ class clientConnection():
     
     def recieve_Data(self):
         while not self.exit:
+            t.sleep(1)
             try:
                 message = self.Socket.recv(65535).decode().strip('\n').split(SPLITCHAR)
                 print(message)
@@ -70,6 +71,7 @@ class clientConnection():
 
     def send_Data(self):
         while not self.exit:
+            t.sleep(1)
             with th.Lock():
                 try:
                     self.Socket.send(js.dumps(getClients()).encode("ascii"))

@@ -12,14 +12,10 @@ import os
 
 SERVERPORT = 9000
 CLIENTPORT = 9001
-
-SPLITCHAR = '\x00'
-
+SPLITCHAR = '`'
 LOGINFILE = "login.txt"
 PRIMEFILE = "primes.txt"
 SERVERFILE = "server.txt"
-
-
 
 """
 ------------notes------------
@@ -32,15 +28,22 @@ SERVERFILE = "server.txt"
         to handle user infomation : ip address, userName, user iD 
         no data is saved permenently on the server
     - protocol for this is sent in plain text with 
-        null bytes seperating each part of the message
-        structure of a transmission follows
-        userName
+        grave chars seperating each part of the message
+        json is sent back to the client every second 
+        containing UIDs usernames and ip addresses
 
     @client
     - data is sent in a plain text format 
-        with null bytes seperating the parts of the message
+        with grave characters seperating the parts of the message
         structure of a message follows
 
+    $Variables
+    - SERVERPORT
+    - CLIENTPORT
+    - PRIMEFILE
+    - SERVERfILE
+    - LOGINFILE
+    - SPLITCHAR
 
     $classes
     - scrollListBox
@@ -48,12 +51,12 @@ SERVERFILE = "server.txt"
             listBox : tk.Listbox
             scrollBar : tk.scrollbar
         methods:
-            getActive
-            Insert
-            Clear
+            __init__
+            get
+            insert
+            clear
         events:
             onClick
-            onDoubleClick
 
     - messageFrame
         properties
@@ -61,23 +64,23 @@ SERVERFILE = "server.txt"
             entryBox : tk.Entry
             enterButton : tk.Button
         methods:
+            __init__
             entry_get
-            listInsert
+            list_Insert
             listClear
             getActive
         events:
             onButtonClick
 
-    
     - menuBar
         properties:
             fileMenu : tk.menu
         methods:
+            __init__
         events:
             exitClicked
         
-
-    - application
+    - Program
         properties:
             paneRoot
             paneLeft
@@ -86,12 +89,34 @@ SERVERFILE = "server.txt"
             PaneRootMessages
             MenuBar
 
-            activeClient
-            activeServer
-        methods:
-            sendMessage
-            connectionsThread
+            userID
+            username
 
+            Clients
+            active_Client
+            active_Server
+
+            exit
+
+        methods:
+            __init__
+            change_server
+            change_client
+            send_Message
+            connections_Thread
+            server_ping
+
+    - LoginBox
+        properties:
+            usernameInput : Tk.entry
+            userLabel : Tk.label
+            passwordinput : Tk.entry
+            passwordLabel : Tk.label
+            enterButton : Tk.button
+            exitButton : Tk.button
+        methods:
+            exit
+            enter
 """
 
 # used for debugging (an evaluation loop)
@@ -179,6 +204,8 @@ class messageFrame(tk.Frame):
     def list_insert(self, text):
         self.listBox.insert(text)
     
+    def list_clear(self):
+        self.listBox.clear()
     # inherited from the scroll listbox
     # changed the name to be easy to identify
 
@@ -288,7 +315,7 @@ class Program(tk.Tk):
     def send_message(self, event):
         print("sending a message")
         pass
-        
+
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
         self.active_server = self.paneLeftServers.get()
@@ -333,12 +360,28 @@ class Program(tk.Tk):
             print()
             if currentConnection != self.active_server:
                 try:
+                    # tell the server the client is leaving
                     servSocket.send(self.protocolString + SPLITCHAR + "close")
+                    # close the connection
                     servSocket.close()
+                    # connect to new server
                     servSocket.connect((self.active_server, SERVERPORT))
+                    # set the current connection to the new connection for later comparison
                     currentConnection = self.active_server
+                # capture any exceptions and print them out without afecting code execution
                 except Exception as e:
                     print(e.args)
+                    pass
+            # else if no change continue collecting client lists from server
+            else:
+                # get json from server, containing clients with uids ips and any other data
+                clients = js.loads(servSocket.recv(65535).decode())
+                # set application clients to the new dictionary
+                self.clients = clients
+                self.paneLeftClients.clear()
+                for i in self.clients.keys():
+                    self.paneLeftClients.insert()
+
             
 
 
