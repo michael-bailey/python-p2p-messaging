@@ -138,13 +138,13 @@ class scrollListBox(tk.Frame):
     def __init__(self, parent, on_click=None):
         super().__init__(parent)
 
-        self.on_click = on_click
         #creating widget definitions
-        self.listBox = tk.Listbox(self, )
+        self.listBox = tk.Listbox(self)
         self.scrollBar = tk.Scrollbar(self, orient=tk.VERTICAL)
         #set bindings and events for the scroll bar so contents scroll
         self.listBox.config(yscrollcommand=self.scrollBar.set)
         self.scrollBar.config(command=self.listBox.yview)
+        self.listBox.bind("<Button-1>", on_click)
 
         #packing widgets
         self.listBox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -322,7 +322,6 @@ class Program(tk.Tk):
 
     def change_Server(self, event):
         self.active_server = self.paneLeftServers.get()
-        self.changeServer = True
 
     #these functions will be turned into a separate thread that 
     #  this will check for any client connecting
@@ -356,31 +355,36 @@ class Program(tk.Tk):
         currentConnection = ""
 
         while not self.exit:
-            t.sleep(0.5)
-            print()
-            if currentConnection != self.active_server:
-                try:
-                    # tell the server the client is leaving
-                    servSocket.send(self.protocolString + SPLITCHAR + "close")
-                    # close the connection
-                    servSocket.close()
-                    # connect to new server
-                    servSocket.connect((self.active_server, SERVERPORT))
-                    # set the current connection to the new connection for later comparison
-                    currentConnection = self.active_server
-                # capture any exceptions and print them out without afecting code execution
-                except Exception as e:
-                    print(e.args)
+            t.sleep(1)
+            print("ping", self.active_server)
+            try:
+                if self.active_server == "":
                     pass
+
+                elif currentConnection != self.active_server:
+                    print("close the connection")
+                    servSocket.close()
+                    print("connect to new server")
+                    servSocket.connect((self.active_server, SERVERPORT))
+                    print("set the current connection to the new connection for later comparison")
+                    servSocket.send(self.userID + SPLITCHAR + self.userName)
+                    currentConnection = self.active_server
+
+                else:
+                    print("get json from server, containing clients with uids ips and any other data")
+                    clients = js.loads(servSocket.recv(65535).decode())
+                    print("set application clients to the new dictionary")
+                    self.clients = clients
+                    self.paneLeftClients.clear()
+                    for i in self.clients.keys():
+                        self.paneLeftClients.insert(self.clients[i][0] + "," + self.clients[i][1])
+                        print("capture any exceptions and print them out without afecting code execution")
+            except Exception as e:
+                print(e.args)
+                servSocket.close()
+                pass
             # else if no change continue collecting client lists from server
-            else:
-                # get json from server, containing clients with uids ips and any other data
-                clients = js.loads(servSocket.recv(65535).decode())
-                # set application clients to the new dictionary
-                self.clients = clients
-                self.paneLeftClients.clear()
-                for i in self.clients.keys():
-                    self.paneLeftClients.insert()
+            
 
             
 
