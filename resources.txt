@@ -1,1 +1,2 @@
-https://docs.python.org/2/howto/sockets.html used to find out how to use select with non blockig sockets
+https://docs.python.org/2/howto/sockets.html used to find out how to use select with non blocking sockets
+https://brilliant.org/wiki/extended-euclidean-algorithm/ extended euclideans algorithm explaination and example

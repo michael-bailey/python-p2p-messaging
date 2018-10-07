@@ -119,6 +119,12 @@ SERVERFILE = "server.txt"
             enter
 """
 
+# to be used as part of the Ext' Euclid algorithm
+def GCD(num1, num2):
+    if num2 == 0:
+        return num1
+    else: return GCD(num2, num1 % num2)
+
 # used for debugging (an evaluation loop)
 def debug_console():
     while True:
