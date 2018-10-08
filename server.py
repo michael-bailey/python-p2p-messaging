@@ -14,11 +14,7 @@ SERVERPORT = 9000
 SPLITCHAR = "`"
 
 # set the server to use threads instead of non blocking sockets because i discovered daemon threads
-serverSocket = s.socket()
-serverSocket.bind(("", SERVERPORT))
-serverSocket.listen()
 
-clients = []
 
 def removeClient(object):
     index = clients.index(object)
@@ -86,16 +82,25 @@ class clientConnection():
         removeClient(self)
         self.exit = True
 
+serverSocket = s.socket()
+serverSocket.bind(("", SERVERPORT))
+serverSocket.listen()
+
+clients = []
+
 while True:
     tmpSocket , address = serverSocket.accept()
     print(address)
     details = tmpSocket.recv(65535).decode().strip("\n").split(SPLITCHAR)
-    try:
-        tmpObject = clientConnection(details[0], details[1], address, tmpSocket)
-        clients.append(tmpObject)
-        print("debug1", clients)
-        clients[clients.index(tmpObject)].start()
-        print(clients)
-    except Exception as e:
-        print(e.args)
+    if details == "1":
         tmpSocket.close()
+    else:
+        try:
+            tmpObject = clientConnection(details[0], details[1], address, tmpSocket)
+            clients.append(tmpObject)
+            print("debug1", clients)
+            clients[clients.index(tmpObject)].start()
+            print(clients)
+        except Exception as e:
+            print(e.args)
+            tmpSocket.close()

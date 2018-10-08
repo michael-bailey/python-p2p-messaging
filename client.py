@@ -121,18 +121,8 @@ SERVERFILE = "server.txt"
 
 # to be used as part of the Ext' Euclid algorithm
 def GCD(num1, num2):
-    if num2 == 0:
-        return num1
+    if num2 == 0: return num1
     else: return GCD(num2, num1 % num2)
-
-# used for debugging (an evaluation loop)
-def debug_console():
-    while True:
-        t.sleep(0.5)
-        try:
-            print(eval(input(":>")))
-        except e as error:
-            print(error.args)
 
 # creating a composite widget that 
 # adds a scroll bar to the list widget
@@ -266,14 +256,11 @@ class Program(tk.Tk):
         self.title("")
 
         #defining program variables
-        self.active_client_uid = ""
-        self.active_server = ""
         self.exit = False
-        self.changeServer = False
         self.userName = ""
         self.passwd = ""
         self.userID = ""
-
+        self.serverFile = open(SERVERFILE, "r")
         self.clients = {}
         self.protocolString = "" + self.userID + SPLITCHAR + self.userName + SPLITCHAR
 
@@ -284,34 +271,43 @@ class Program(tk.Tk):
             self.userName = details[0]
             self.passwd = details[1]
             self.userID = hash(details[0] + details[1])
-
-
         #print an error message to describe what happened
         except:
             print("file deleted between the start and the creation of the main program object")
 
-        #defining menu bar
+
+
+        # creating the gui
+        # defining menu bar
         self.menubar = menuBar(self)
         self.config(menu=self.menubar)        
-        #creating widget definitions
+        # creating widget definitions
         self.paneRoot = tk.PanedWindow(self, handlepad=16, showhandle=True)
         self.paneLeft = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
         self.paneLeftClients = scrollListBox(self)
         self.paneLeftServers = scrollListBox(self, on_click=self.change_Server)
         self.PaneRootMessages = messageFrame(self, send_command=self.send_message)
-        #linking widgets together
+        # linking widgets together
         self.paneLeft.add(self.paneLeftClients)
         self.paneLeft.add(self.paneLeftServers)
         self.paneRoot.add(self.paneLeft)
         self.paneRoot.add(self.PaneRootMessages)
-        #create handler threads
+        # create handler threads
         self.connectionThread = th.Thread(target=self.connections_Thread, daemon=True).start()    
         self.serverPing = th.Thread(target=self.server_ping, daemon=True).start()
 
-        #packing widgets
+        # packing widgets
         self.paneRoot.pack(fill=tk.BOTH,expand=1)
+
         for i in open("servers.txt").readlines():
-            self.paneLeftServers.insert(str(i))
+            tmpvarsock = s.socket()
+            try:
+                tmpvarsock.connect((i,9000))
+                self.paneLeftServers.insert(str(i))
+                tmpvarsock.close
+            except Exception as e:
+                print("problem with" + i + str(e.args))
+                del tmpvarsock
 
         
         tk.mainloop()
@@ -319,80 +315,38 @@ class Program(tk.Tk):
     #this function sends a message
     
     def send_message(self, event):
-        print("sending a message")
+        print("sending message")
         pass
 
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
+        print("changing client")
         self.active_server = self.paneLeftServers.get()
+
 
     def change_Server(self, event):
+        print("changing server")
         self.active_server = self.paneLeftServers.get()
+        self.ChangeServer = True
 
-    #these functions will be turned into a separate thread that 
-    #  this will check for any client connecting
-    def connections_Thread(self):
-        t.sleep(0.5)
-        pass
-        """
-        ClientSocket = s.socket()
-        ClientSocket.bind(("", CLIENTPORT))
-        ClientSocket.listen(5)
-
-
+    # check for any user sending a message
+    def getIncomingConnections(self):
         while not self.exit:
-            
-            tmpSocket, address = ClientSocket.accept()
-            
-            data = tmpsocket.recv(65535).decode().split(SPLITCHAR)
-
-            # update the chat file for the connecting user
-            file = open(str(data[1]) + ".txt", "a").append("" + t.strftime("%Y/%m/%d %H:%M") + " " + data)
-
-            # current user is open on the main screen
-            if self.active_client = data[1]:
-                for i in range(open(data[0]))
-        """
-
-    # this gets users from a server
-    def server_ping(self):
-
+            t.sleep(1)
+        
+    # get user list from server
+    def getOnlineUsers(self):
         servSocket = s.socket()
-        currentConnection = ""
+        while not self.exit:
+            t.sleep(1)
+            
+    # check for online servers
+    def GetOnlineServers(self):
+        
 
         while not self.exit:
             t.sleep(1)
-            print("ping", self.active_server)
-            try:
-                if self.active_server == "":
-                    pass
-
-                elif currentConnection != self.active_server:
-                    print("close the connection")
-                    servSocket.close()
-                    print("connect to new server")
-                    servSocket.connect((self.active_server, SERVERPORT))
-                    print("set the current connection to the new connection for later comparison")
-                    servSocket.send(self.userID + SPLITCHAR + self.userName)
-                    currentConnection = self.active_server
-
-                else:
-                    print("get json from server, containing clients with uids ips and any other data")
-                    clients = js.loads(servSocket.recv(65535).decode())
-                    print("set application clients to the new dictionary")
-                    self.clients = clients
-                    self.paneLeftClients.clear()
-                    for i in self.clients.keys():
-                        self.paneLeftClients.insert(self.clients[i][0] + "," + self.clients[i][1])
-                        print("capture any exceptions and print them out without afecting code execution")
-            except Exception as e:
-                print(e.args)
-                servSocket.close()
-                pass
-            # else if no change continue collecting client lists from server
-            
-
-            
+            for i in 
 
 
 def main():
