@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# 
-
 import threading as th
 import tkinter as tk
 import socket as s
@@ -12,10 +10,12 @@ import os
 
 SERVERPORT = 9000
 CLIENTPORT = 9001
+BUFFERSIZE = 65535
 SPLITCHAR = '`'
 LOGINFILE = "login.txt"
 PRIMEFILE = "primes.txt"
-SERVERFILE = "server.txt"
+SERVERFILE = "servers.txt"
+SOCKETENCODING = "ascii"
 
 """
 ------------notes------------
@@ -257,12 +257,14 @@ class Program(tk.Tk):
 
         #defining program variables
         self.exit = False
+        self.serverConnectionActive = ""
         self.userName = ""
         self.passwd = ""
         self.userID = ""
         self.serverFile = open(SERVERFILE, "r")
         self.clients = {}
-        self.protocolString = "" + self.userID + SPLITCHAR + self.userName + SPLITCHAR
+        self.protocolString = ""
+        self.changeServer = False
 
         # getting user details from a file
         try:
@@ -270,12 +272,13 @@ class Program(tk.Tk):
             details = details_file.readlines()
             self.userName = details[0]
             self.passwd = details[1]
-            self.userID = hash(details[0] + details[1])
+            self.userID = str(hash(details[0] + details[1]))
         #print an error message to describe what happened
         except:
             print("file deleted between the start and the creation of the main program object")
 
-
+        self.protocolString = self.userID + SPLITCHAR + self.userName 
+        print(self.protocolString)
 
         # creating the gui
         # defining menu bar
@@ -292,22 +295,17 @@ class Program(tk.Tk):
         self.paneLeft.add(self.paneLeftServers)
         self.paneRoot.add(self.paneLeft)
         self.paneRoot.add(self.PaneRootMessages)
+        
         # create handler threads
-        self.connectionThread = th.Thread(target=self.connections_Thread, daemon=True).start()    
-        self.serverPing = th.Thread(target=self.server_ping, daemon=True).start()
+        #self. = th.Thread(target=self., daemon=True).start()    
+        self.getOnlineUsersThread = th.Thread(target=self.getOnlineUsers, daemon=True).start()
+        self.getOnlineServerThread = th.Thread(target=self.GetOnlineServers, daemon=True).start()
+
 
         # packing widgets
         self.paneRoot.pack(fill=tk.BOTH,expand=1)
 
-        for i in open("servers.txt").readlines():
-            tmpvarsock = s.socket()
-            try:
-                tmpvarsock.connect((i,9000))
-                self.paneLeftServers.insert(str(i))
-                tmpvarsock.close
-            except Exception as e:
-                print("problem with" + i + str(e.args))
-                del tmpvarsock
+
 
         
         tk.mainloop()
@@ -326,27 +324,65 @@ class Program(tk.Tk):
 
     def change_Server(self, event):
         print("changing server")
-        self.active_server = self.paneLeftServers.get()
-        self.ChangeServer = True
+        self.changeServer = True
 
     # check for any user sending a message
     def getIncomingConnections(self):
+
         while not self.exit:
             t.sleep(1)
         
     # get user list from server
     def getOnlineUsers(self):
-        servSocket = s.socket()
+        onlineUserSocket = s.socket()
         while not self.exit:
-            t.sleep(1)
+            # check if the client is changing server
+            if self.changeServer == True:
+                # get a lock on variavbles
+                # if not connected
+                if self.serverConnectionActive == "":
+                    onlineUserSocket.connect((self.paneLeftServer.get(), SERVERPORT))
+                    onlineUserSocket.send(self.protocolString)
+                    self.serverConnectionActive = self.paneLeftServer.get()
+                # otherwise tell current server client is leaving and change connection
+                else:
+                    onlineUserSocket.send(self.protocolString + "`close")
+                    onlineUserSocket.connect((self.paneLeftServer.get(), SERVERPORT))
+                    onlineUserSocket.send(self.protocolString)
+                    self.serverConnectionActive = self.paneLeftServer.get()
+            # otherwise get clients
+            elif self.serverConnectionActive != "":
+                with th.Lock():
+                    self.clients = js.loads(onlineUserSocket.recv(BUFFERSIZE).decode())
+                    print(self.clients)
+                    self.paneLeftClients.clear()
+                    for i in self.clients.keys():
+                        self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
+
+
+
+
+
+            
             
     # check for online servers
     def GetOnlineServers(self):
-        
-
+        onlineServerSocket = s.socket()
+        count = 0
         while not self.exit:
-            t.sleep(1)
-            for i in 
+            count = count + 1
+            while not self.exit:
+                for i in self.serverFile.readlines():
+                    try:
+                        print("connecting to", i)
+                        onlineServerSocket.connect((i,9000))
+                        onlineServerSocket.send("1".encode("ascii"))
+                        onlineServerSocket.close()
+                        self.paneLeftServers.insert(i)
+                    except Exception as e:
+                        print("failed to connect to", i)
+                        pass
+                t.sleep(5)
 
 
 def main():
@@ -359,5 +395,4 @@ def main():
     P = Program()
 
 if __name__ == "__main__":
-    # th.Thread( target = debug_console, daemon=True).start()
     main()

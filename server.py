@@ -8,12 +8,11 @@ import time as t
 import errno
 import os
 
-# print(s.gethostbyname(s.gethostname()))
+print(s.gethostbyname(s.gethostname()))
 
 SERVERPORT = 9000
 SPLITCHAR = "`"
 
-# set the server to use threads instead of non blocking sockets because i discovered daemon threads
 
 
 def removeClient(object):
@@ -82,6 +81,7 @@ class clientConnection():
         removeClient(self)
         self.exit = True
 
+	
 serverSocket = s.socket()
 serverSocket.bind(("", SERVERPORT))
 serverSocket.listen()
@@ -92,7 +92,7 @@ while True:
     tmpSocket , address = serverSocket.accept()
     print(address)
     details = tmpSocket.recv(65535).decode().strip("\n").split(SPLITCHAR)
-    if details == "1":
+    if details[0] == "1":
         tmpSocket.close()
     else:
         try:
