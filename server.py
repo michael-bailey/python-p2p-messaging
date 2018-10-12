@@ -11,6 +11,7 @@ import os
 print(s.gethostbyname(s.gethostname()))
 
 SERVERPORT = 9000
+BINDADDRESS = "0.0.0.0"
 SPLITCHAR = "`"
 
 

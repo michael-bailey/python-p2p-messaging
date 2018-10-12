@@ -11,6 +11,7 @@ import os
 SERVERPORT = 9000
 CLIENTPORT = 9001
 BUFFERSIZE = 65535
+BINDADDRESS = "0.0.0.0"
 SPLITCHAR = '`'
 LOGINFILE = "login.txt"
 PRIMEFILE = "primes.txt"
@@ -261,7 +262,7 @@ class Program(tk.Tk):
         self.userName = ""
         self.passwd = ""
         self.userID = ""
-        self.serverFile = open(SERVERFILE, "r")
+        self.serverFile = open(SERVERFILE, "r").readlines()
         self.clients = {}
         self.protocolString = ""
         self.changeServer = False
@@ -336,20 +337,21 @@ class Program(tk.Tk):
     def getOnlineUsers(self):
         onlineUserSocket = s.socket()
         while not self.exit:
+            t.sleep(2)
             # check if the client is changing server
             if self.changeServer == True:
                 # get a lock on variavbles
                 # if not connected
                 if self.serverConnectionActive == "":
-                    onlineUserSocket.connect((self.paneLeftServer.get(), SERVERPORT))
-                    onlineUserSocket.send(self.protocolString)
-                    self.serverConnectionActive = self.paneLeftServer.get()
+                    onlineUserSocket.connect((self.paneLeftServers.get(), SERVERPORT))
+                    onlineUserSocket.send(self.protocolString.encode(SOCKETENCODING))
+                    self.serverConnectionActive = self.paneLeftServers.get()
                 # otherwise tell current server client is leaving and change connection
                 else:
                     onlineUserSocket.send(self.protocolString + "`close")
-                    onlineUserSocket.connect((self.paneLeftServer.get(), SERVERPORT))
+                    onlineUserSocket.connect((self.paneLeftServers.get(), SERVERPORT))
                     onlineUserSocket.send(self.protocolString)
-                    self.serverConnectionActive = self.paneLeftServer.get()
+                    self.serverConnectionActive = self.paneLeftServers.get()
             # otherwise get clients
             elif self.serverConnectionActive != "":
                 with th.Lock():
@@ -371,18 +373,18 @@ class Program(tk.Tk):
         count = 0
         while not self.exit:
             count = count + 1
-            while not self.exit:
-                for i in self.serverFile.readlines():
-                    try:
-                        print("connecting to", i)
-                        onlineServerSocket.connect((i,9000))
-                        onlineServerSocket.send("1".encode("ascii"))
-                        onlineServerSocket.close()
-                        self.paneLeftServers.insert(i)
-                    except Exception as e:
-                        print("failed to connect to", i)
-                        pass
-                t.sleep(5)
+            for i in self.serverFile:
+                try:
+                    print("connecting to", i)
+                    onlineServerSocket.connect((i,9000))
+                    onlineServerSocket.send("1".encode("ascii"))
+                    onlineServerSocket.close()
+                    self.paneLeftServers.insert(i)
+                except Exception as e:
+                    print("failed to connect to", i)
+                    pass
+            print(count)
+            t.sleep(5)
 
 
 def main():
