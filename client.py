@@ -86,7 +86,7 @@ SOCKETENCODING = "ascii"
             paneRoot
             paneLeft
             PaneLeftClient
-            paneLeftServer
+            paneLeftServers
             PaneRootMessages
             MenuBar
 
@@ -346,20 +346,24 @@ class Program(tk.Tk):
                     onlineUserSocket.connect((self.paneLeftServers.get(), SERVERPORT))
                     onlineUserSocket.send(self.protocolString.encode(SOCKETENCODING))
                     self.serverConnectionActive = self.paneLeftServers.get()
+                    print("prevoios connection = ''", self.serverConnectionActive)
+                    self.changeServer = False
                 # otherwise tell current server client is leaving and change connection
                 else:
-                    onlineUserSocket.send(self.protocolString + "`close")
+                    onlineUserSocket.send((self.protocolString + "`close").encode(SOCKETENCODING))
                     onlineUserSocket.connect((self.paneLeftServers.get(), SERVERPORT))
-                    onlineUserSocket.send(self.protocolString)
+                    onlineUserSocket.send(self.protocolString.encode(SOCKETENCODING))
                     self.serverConnectionActive = self.paneLeftServers.get()
+                    print("was connected", self.serverConnectionActive)
+                    self.changeServer = False
             # otherwise get clients
             elif self.serverConnectionActive != "":
-                with th.Lock():
-                    self.clients = js.loads(onlineUserSocket.recv(BUFFERSIZE).decode())
-                    print(self.clients)
-                    self.paneLeftClients.clear()
-                    for i in self.clients.keys():
-                        self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
+                self.paneLeftClients.clear()
+                self.clients = js.loads(onlineUserSocket.recv(BUFFERSIZE).decode())
+                print(self.clients)
+                self.paneLeftClients.clear()
+                for i in self.clients.keys():
+                    self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
 
 
 
@@ -369,9 +373,10 @@ class Program(tk.Tk):
             
     # check for online servers
     def GetOnlineServers(self):
-        onlineServerSocket = s.socket()
         count = 0
         while not self.exit:
+            self.paneLeftServers.clear()
+            onlineServerSocket = s.socket()
             count = count + 1
             for i in self.serverFile:
                 try:
@@ -383,6 +388,7 @@ class Program(tk.Tk):
                 except Exception as e:
                     print("failed to connect to", i)
                     pass
+            del onlineServerSocket
             print(count)
             t.sleep(5)
 

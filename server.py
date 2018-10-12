@@ -11,7 +11,7 @@ import os
 print(s.gethostbyname(s.gethostname()))
 
 SERVERPORT = 9000
-BINDADDRESS = "0.0.0.0"
+BINDADDRESS = "0.0.0.0"     # using the 0.0.0 address 
 SPLITCHAR = "`"
 
 
@@ -84,7 +84,7 @@ class clientConnection():
 
 	
 serverSocket = s.socket()
-serverSocket.bind(("", SERVERPORT))
+serverSocket.bind((BINDADDRESS, SERVERPORT))
 serverSocket.listen()
 
 clients = []
