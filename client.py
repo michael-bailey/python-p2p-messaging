@@ -237,11 +237,14 @@ class loginBox(tk.Tk):
         # as this is used for the unique identifier later in the program
         username = self.usernameInput.get()
         password = self.passwordInput.get()
+        userID = username + password
+        userID = str(hash(userID))
 
         loginFile = open(LOGINFILE, "w")
 
         loginFile.write(username + "\n")
         loginFile.write(password + "\n")
+        loginFile.write(userID + "\n")
         loginFile.close()
 
         self.destroy()
@@ -271,12 +274,13 @@ class Program(tk.Tk):
         try:
             details_file = open(LOGINFILE, "r")
             details = details_file.readlines()
-            self.userName = details[0]
-            self.passwd = details[1]
-            self.userID = str(hash(details[0] + details[1]))
+            print(details)
+            self.username = details[0].strip("\n")
+            self.passwd = details[1].strip("\n")
+            self.userID = details[2].strip("\n")
         #print an error message to describe what happened
-        except:
-            print("file deleted between the start and the creation of the main program object")
+        except Exception as e:
+            print(e.args)
 
         self.protocolString = self.userID + SPLITCHAR + self.userName 
         print(self.protocolString)
@@ -284,7 +288,8 @@ class Program(tk.Tk):
         # creating the gui
         # defining menu bar
         self.menubar = menuBar(self)
-        self.config(menu=self.menubar)        
+        self.config(menu=self.menubar)
+        self.protocol("WM_DELETE_WINDOW", self.onClose)        
         # creating widget definitions
         self.paneRoot = tk.PanedWindow(self, handlepad=16, showhandle=True)
         self.paneLeft = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
@@ -302,17 +307,12 @@ class Program(tk.Tk):
         self.getOnlineUsersThread = th.Thread(target=self.getOnlineUsers, daemon=True).start()
         self.getOnlineServerThread = th.Thread(target=self.GetOnlineServers, daemon=True).start()
 
-
         # packing widgets
         self.paneRoot.pack(fill=tk.BOTH,expand=1)
 
-
-
-        
         tk.mainloop()
 
     #this function sends a message
-    
     def send_message(self, event):
         print("sending message")
         pass
@@ -320,24 +320,28 @@ class Program(tk.Tk):
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
         print("changing client")
-        self.active_server = self.paneLeftServers.get()
+
 
 
     def change_Server(self, event):
         print("changing server")
         self.changeServer = True
+    
+    def onClose(self):
+        self.close = False
+        sys.exit()
 
     # check for any user sending a message
     def getIncomingConnections(self):
 
         while not self.exit:
             t.sleep(1)
+        print("incoming connection lister is closing")
         
     # get user list from server
     def getOnlineUsers(self):
         onlineUserSocket = s.socket()
         while not self.exit:
-            t.sleep(2)
             # check if the client is changing server
             if self.changeServer == True:
                 # get a lock on variavbles
@@ -359,18 +363,22 @@ class Program(tk.Tk):
             # otherwise get clients
             elif self.serverConnectionActive != "":
                 self.paneLeftClients.clear()
-                self.clients = js.loads(onlineUserSocket.recv(BUFFERSIZE).decode())
-                print(self.clients)
-                self.paneLeftClients.clear()
-                for i in self.clients.keys():
-                    self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
+                try:
+                    self.clients = js.loads(onlineUserSocket.recv(BUFFERSIZE).decode())
+                    print(self.clients)
+                    self.paneLeftClients.clear()
+                    for i in self.clients.keys():
+                        self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
+                except Exception as e:
+                    self.serverConnectionActive = ""
+                    print(e.args)
+            t.sleep(2)
+
+        onlineUserSocket.send((self.protocolString + "`close").encode(SOCKETENCODING))
+        onlineUserSocket.close()
+        print("get online user thread is exiting")
 
 
-
-
-
-            
-            
     # check for online servers
     def GetOnlineServers(self):
         count = 0
@@ -391,6 +399,7 @@ class Program(tk.Tk):
             del onlineServerSocket
             print(count)
             t.sleep(5)
+        print("get online server thread closing")
 
 
 def main():
