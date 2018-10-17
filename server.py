@@ -14,8 +14,6 @@ SERVERPORT = 9000
 BINDADDRESS = "0.0.0.0"     # using the 0.0.0 address 
 SPLITCHAR = "`"
 
-
-
 def removeClient(object):
     index = clients.index(object)
     print("removing object", clients[index], "from the clients")
@@ -51,33 +49,31 @@ class clientConnection():
     
     def recieve_Data(self):
         while not self.exit:
-            t.sleep(1)
+            t.sleep(0.25)
             try:
-                message = self.Socket.recv(65535).decode().strip('\n').split(SPLITCHAR)
+                message = self.Socket.recv(65535).decode().strip('\n')
                 print(message)
-
-                # if the close message is sent then delete everything about the client
-                if message[2] == "close":
-                    print("closing connection", self.ip)
+                if message == "close":
                     self.close()
+                    t.sleep(2)
             except s.error as error:
                 print("error occured. closing client", self.ip[0], "errno", error.errno)
-
                 self.close()
+                t.sleep(2)
 
     def send_Data(self):
         while not self.exit:
-            t.sleep(1)
+            t.sleep(0.25)
             with th.Lock():
                 try:
                     self.Socket.send(js.dumps(getClients()).encode("ascii"))
                 except s.error as error:
                     print("error occured. closing client", self.ip[0], "errno", error.errno)
                     self.close()
-            t.sleep(1)
+                    t.sleep(2)
+            t.sleep(2)
 
     def close(self):
-
         self.Socket.close()
         removeClient(self)
         self.exit = True
@@ -93,10 +89,11 @@ while True:
     tmpSocket , address = serverSocket.accept()
     print(address)
     details = tmpSocket.recv(65535).decode().strip("\n").split(SPLITCHAR)
-    if details[0] == "1":
+    if len(details) == 1:
         tmpSocket.close()
     else:
         try:
+            print(address)
             tmpObject = clientConnection(details[0], details[1], address, tmpSocket)
             clients.append(tmpObject)
             print("debug1", clients)

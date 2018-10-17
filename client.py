@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import threading as th
+import hashlib as sha
 import tkinter as tk
 import socket as s
 import json as js
@@ -242,8 +243,11 @@ class loginBox(tk.Tk):
 
         loginFile = open(LOGINFILE, "w")
 
+        # write credentials to a file
         loginFile.write(username + "\n")
-        loginFile.write(password + "\n")
+        # hash password for security
+        loginFile.write(hash(password) + "\n")
+        # hash hashed password to generate a userid
         loginFile.write(userID + "\n")
         loginFile.close()
 
@@ -261,14 +265,13 @@ class Program(tk.Tk):
 
         #defining program variables
         self.exit = False
-        self.serverConnectionActive = ""
         self.userName = ""
         self.passwd = ""
         self.userID = ""
         self.serverFile = open(SERVERFILE, "r").readlines()
-        self.clients = {}
         self.protocolString = ""
         self.changeServer = False
+        self.changeClient = False
 
         # getting user details from a file
         try:
@@ -278,6 +281,7 @@ class Program(tk.Tk):
             self.username = details[0].strip("\n")
             self.passwd = details[1].strip("\n")
             self.userID = details[2].strip("\n")
+
         #print an error message to describe what happened
         except Exception as e:
             print(e.args)
@@ -320,8 +324,7 @@ class Program(tk.Tk):
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
         print("changing client")
-
-
+        self.changeClient = True
 
     def change_Server(self, event):
         print("changing server")
@@ -329,6 +332,7 @@ class Program(tk.Tk):
     
     def onClose(self):
         self.close = False
+        t.sleep(5)
         sys.exit()
 
     # check for any user sending a message
@@ -337,24 +341,55 @@ class Program(tk.Tk):
         while not self.exit:
             t.sleep(1)
         print("incoming connection lister is closing")
-        
+
     # get user list from server
     def getOnlineUsers(self):
+        onlineUserSocket = s.socket()
+        currentConnection = ""
+        clients = {}
+
+        while not self.exit:
+            # is client changing servers
+            if self.changeServer == True:
+                # does the client have a connection if so close it
+                try:
+                    onlineUserSocket.send("close".encode(SOCKETENCODING))
+                    print("disconnecting")
+                    onlineUserSocket.close()
+                # client isnt connected procede anyway
+                except Exception as e:
+                    print("not connected")
+                    print(e.args)
+                
+                # get next servers details
+                currentConnection = self.paneLeftServers.get()
+                print("next server = ", currentConnection)
+                onlineUserSocket.connect(currentConnection)
+                onlineUserSocket.send(self.protocolString)
+            
+            # otherwise recieve data from the server
+            elif currentConnection != "":
+                clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
+                for i in clients.keys():
+                        self.paneLeftClients.insert(clients[i][0] + ", " + i)
+
+                
+
+        """
         onlineUserSocket = s.socket()
         while not self.exit:
             # check if the client is changing server
             if self.changeServer == True:
-                # get a lock on variavbles
-                # if not connected
+                # if not connected?
                 if self.serverConnectionActive == "":
                     onlineUserSocket.connect((self.paneLeftServers.get(), SERVERPORT))
                     onlineUserSocket.send(self.protocolString.encode(SOCKETENCODING))
                     self.serverConnectionActive = self.paneLeftServers.get()
-                    print("prevoios connection = ''", self.serverConnectionActive)
+                    print("previous connection = ", self.serverConnectionActive)
                     self.changeServer = False
                 # otherwise tell current server client is leaving and change connection
                 else:
-                    onlineUserSocket.send((self.protocolString + "`close").encode(SOCKETENCODING))
+                    onlineUserSocket.send("close".encode(SOCKETENCODING))
                     onlineUserSocket.connect((self.paneLeftServers.get(), SERVERPORT))
                     onlineUserSocket.send(self.protocolString.encode(SOCKETENCODING))
                     self.serverConnectionActive = self.paneLeftServers.get()
@@ -362,22 +397,29 @@ class Program(tk.Tk):
                     self.changeServer = False
             # otherwise get clients
             elif self.serverConnectionActive != "":
+                print("clearing panel")
                 self.paneLeftClients.clear()
                 try:
+                    print("getting users")
                     self.clients = js.loads(onlineUserSocket.recv(BUFFERSIZE).decode())
+                    print(":users:")
                     print(self.clients)
                     self.paneLeftClients.clear()
                     for i in self.clients.keys():
                         self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
                 except Exception as e:
                     self.serverConnectionActive = ""
+
                     print(e.args)
             t.sleep(2)
-
-        onlineUserSocket.send((self.protocolString + "`close").encode(SOCKETENCODING))
+        print("sending", ("close").encode(SOCKETENCODING))
+        onlineUserSocket.send("close".encode(SOCKETENCODING))
+        t.sleep(1)
+        print("closing socket")
         onlineUserSocket.close()
         print("get online user thread is exiting")
 
+"""
 
     # check for online servers
     def GetOnlineServers(self):
