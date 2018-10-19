@@ -3,3 +3,5 @@ contacts.json
 config.json
 *.json
 *.txt
+*.sqlite
+.vs/python-p2p-messaging/v15/.suo
