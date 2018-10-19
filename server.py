@@ -10,6 +10,7 @@ import os
 
 print(s.gethostbyname(s.gethostname()))
 
+THREADWAITTIME = 1
 SERVERPORT = 9000
 BINDADDRESS = "0.0.0.0"     # using the 0.0.0 address 
 SPLITCHAR = "`"
@@ -49,7 +50,6 @@ class clientConnection():
     
     def recieve_Data(self):
         while not self.exit:
-            t.sleep(0.25)
             try:
                 message = self.Socket.recv(65535).decode().strip('\n')
                 print(message)
@@ -60,18 +60,17 @@ class clientConnection():
                 print("error occured. closing client", self.ip[0], "errno", error.errno)
                 self.close()
                 t.sleep(2)
+            t.sleep(THREADWAITTIME)
 
     def send_Data(self):
         while not self.exit:
-            t.sleep(0.25)
             with th.Lock():
                 try:
                     self.Socket.send(js.dumps(getClients()).encode("ascii"))
                 except s.error as error:
                     print("error occured. closing client", self.ip[0], "errno", error.errno)
                     self.close()
-                    t.sleep(2)
-            t.sleep(2)
+            t.sleep(THREADWAITTIME)
 
     def close(self):
         self.Socket.close()

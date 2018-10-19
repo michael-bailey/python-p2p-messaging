@@ -2,16 +2,19 @@
 
 import threading as th
 import hashlib as sha
+import errno as error
 import tkinter as tk
 import socket as s
 import json as js
 import time as t
+
 import sys
 import os
 
 SERVERPORT = 9000
 CLIENTPORT = 9001
 BUFFERSIZE = 65535
+THREADWAITTIME = 1
 BINDADDRESS = "0.0.0.0"
 SPLITCHAR = '`'
 LOGINFILE = "login.txt"
@@ -329,11 +332,10 @@ class Program(tk.Tk):
     def change_Server(self, event):
         print("changing server")
         self.changeServer = True
+        t.sleep(1)
     
     def onClose(self):
-        self.close = False
-        t.sleep(5)
-        sys.exit()
+        exit()
 
     # check for any user sending a message
     def getIncomingConnections(self):
@@ -348,30 +350,44 @@ class Program(tk.Tk):
         currentConnection = ""
         clients = {}
 
-        while not self.exit:
+        while 1:
             # is client changing servers
             if self.changeServer == True:
                 # does the client have a connection if so close it
-                try:
-                    onlineUserSocket.send("close".encode(SOCKETENCODING))
-                    print("disconnecting")
-                    onlineUserSocket.close()
-                # client isnt connected procede anyway
-                except Exception as e:
-                    print("not connected")
-                    print(e.args)
+                if currentConnection != "":
+                    try:
+                        onlineUserSocket.send("close".encode(SOCKETENCODING))
+                        print("disconnecting")
+                        onlineUserSocket.close()
+                        onlineUserSocket = s.socket()
+                    # client isnt connected procede anyway
+                    except Exception as e:
+                        print("not connected [get online user thread]")
+                        print(e.args)
                 
                 # get next servers details
+                print("selected", self.paneLeftServers.get())
                 currentConnection = self.paneLeftServers.get()
                 print("next server = ", currentConnection)
-                onlineUserSocket.connect(currentConnection)
-                onlineUserSocket.send(self.protocolString)
+                onlineUserSocket.connect((currentConnection, SERVERPORT))
+                onlineUserSocket.send(self.protocolString.encode("ascii"))
+                self.changeServer == False
             
             # otherwise recieve data from the server
             elif currentConnection != "":
-                clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
-                for i in clients.keys():
-                        self.paneLeftClients.insert(clients[i][0] + ", " + i)
+                try:
+                    clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
+                    for i in clients.keys():
+                            self.paneLeftClients.insert(clients[i][0] + ", " + i)
+                except Exception as e:
+                    currentConnection = ""
+                    print(e.args)
+
+            else:
+                print("notconnected")
+            t.sleep(THREADWAITTIME)
+        return 0
+                 
 
                 
 
@@ -424,24 +440,31 @@ class Program(tk.Tk):
     # check for online servers
     def GetOnlineServers(self):
         count = 0
-        while not self.exit:
+        print(self.serverFile)
+        while 1:
             self.paneLeftServers.clear()
             onlineServerSocket = s.socket()
             count = count + 1
             for i in self.serverFile:
                 try:
-                    print("connecting to", i)
-                    onlineServerSocket.connect((i,9000))
+                    onlineServerSocket = s.socket()
+                    onlineServerSocket.connect((i.strip("\n"),9000))
                     onlineServerSocket.send("1".encode("ascii"))
                     onlineServerSocket.close()
                     self.paneLeftServers.insert(i)
                 except Exception as e:
-                    print("failed to connect to", i)
-                    pass
-            del onlineServerSocket
+                    if e.args[0] == 8:
+                        pass
+                    elif e.args[0] == 51:
+                        pass
+                    else:
+                        print(e.args)
+                        
+                        print("get online server thread")
             print(count)
-            t.sleep(5)
+            t.sleep(THREADWAITTIME)
         print("get online server thread closing")
+        return 0
 
 
 def main():
