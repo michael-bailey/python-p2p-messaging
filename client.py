@@ -4,6 +4,7 @@ import threading as th
 import hashlib as sha
 import errno as error
 import tkinter as tk
+
 import socket as s
 import json as js
 import time as t
@@ -14,7 +15,7 @@ import os
 SERVERPORT = 9000
 CLIENTPORT = 9001
 BUFFERSIZE = 65535
-THREADWAITTIME = 1
+THREADWAITTIME = 0.25
 BINDADDRESS = "0.0.0.0"
 SPLITCHAR = '`'
 LOGINFILE = "login.txt"
@@ -168,12 +169,16 @@ class scrollListBox(tk.Frame):
 # will be used to add a exit butto
 # and other features in the future
 class menuBar(tk.Menu):
-    def __init__(self, parent, exitClicked=sys.exit):
+    def __init__(self, parent, exitClicked=sys.exit, forceSendWindow=None):
         super().__init__(parent)
         
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
-        self.fileMenu.add_command(label="exit", command=exitClicked)
+        if forceSendWindow == None:
+            self.fileMenu.add_command(label="not avalible")
+        else:
+            self.fileMenu.add_command(label="force send menu", command=forceSendWindow)
+        self.fileMenu.add_command(label="exit", command=lambda: tk.mess)
         self.add_cascade(label="file", menu=self.fileMenu)
 
 # this displays messages to the user 
@@ -259,6 +264,35 @@ class loginBox(tk.Tk):
     def exit(self):
         sys.exit(0)
 
+class forceSendWindow(tk.toplevel):
+    def __init__(self):
+        super().__init__()
+
+        # definning the window widgets
+        self.ipLabel = tk.Label(text="usersIP:")
+        self.messageLabel = tk.Label(text="message:")
+        self.ipEntry = tk.Entry()
+        self.messageEntry = tk.Entry()
+        self.sendButton = tk.Button(text="send!")
+        self.closeButton = tk.Button(text="close")
+
+        #setting them to a grid
+        self.ipLabel.grid(row=0,column=0)
+        self.messageLabel.grid(row=1,column=0)
+        self.ipEntry.grid(row=0,column=1)
+        self.messageEntry.grid(row=1,column=1)
+        self.sendButton.grid(row=2,column=0)
+        self.closeButton.grid(row=2,column=1)
+
+    # defining the send message function (will be used in the main window)
+    def sendMessage():
+        pass
+    # function to close the window if not needed   
+    def closeWindow():
+        self.destroy()
+        tk.
+
+
 # the main program
 class Program(tk.Tk):
     def __init__(self):
@@ -333,9 +367,10 @@ class Program(tk.Tk):
         print("changing server")
         self.changeServer = True
         t.sleep(1)
+        self.changeServer = False
     
     def onClose(self):
-        exit()
+        exit(0)
 
     # check for any user sending a message
     def getIncomingConnections(self):
@@ -351,6 +386,7 @@ class Program(tk.Tk):
         clients = {}
 
         while 1:
+            self.paneLeftClients.clear()
             # is client changing servers
             if self.changeServer == True:
                 # does the client have a connection if so close it
@@ -375,6 +411,7 @@ class Program(tk.Tk):
             
             # otherwise recieve data from the server
             elif currentConnection != "":
+
                 try:
                     clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
                     for i in clients.keys():
@@ -382,7 +419,6 @@ class Program(tk.Tk):
                 except Exception as e:
                     currentConnection = ""
                     print(e.args)
-
             else:
                 print("notconnected")
             t.sleep(THREADWAITTIME)
