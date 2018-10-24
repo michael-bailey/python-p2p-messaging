@@ -12,7 +12,7 @@ print(s.gethostbyname(s.gethostname()))
 
 THREADWAITTIME = 1
 SERVERPORT = 9000
-BINDADDRESS = "0.0.0.0"     # using the 0.0.0 address 
+BINDADDRESS = ""     # using the 0.0.0 address 
 SPLITCHAR = "`"
 
 def removeClient(object):
