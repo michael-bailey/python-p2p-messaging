@@ -48,6 +48,7 @@ class clientConnection():
         self.recv_thread.start()
         self.send_thread.start()
     
+        # server will only send client info when the client asks for it with a '?'
     def recieve_Data(self):
         while not self.exit:
             try:
@@ -56,15 +57,27 @@ class clientConnection():
                 if message == "close":
                     self.close()
                     t.sleep(2)
+                elif message == "?":
+                    self.Socket.send(js.dumps(getClients()).encode("ascii"))
+                else:
+                    pass
             except s.error as error:
                 print("error occured. closing client", self.ip[0], "errno", error.errno)
                 self.close()
                 t.sleep(2)
             t.sleep(THREADWAITTIME)
 
+    def close(self):
+        self.exit = True
+        self.Socket.close()
+        removeClient(self)
+
+"""
     def send_Data(self):
         while not self.exit:
+
             with th.Lock():
+                if :
                 try:
                     self.Socket.send(js.dumps(getClients()).encode("ascii"))
                 except Exception as e:
@@ -72,10 +85,7 @@ class clientConnection():
                     self.close()
             t.sleep(THREADWAITTIME)
 
-    def close(self):
-        self.exit = True
-        self.Socket.close()
-        removeClient(self)
+"""
 
 
 serverSocket = s.socket()
