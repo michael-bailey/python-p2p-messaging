@@ -12,7 +12,7 @@ print(s.gethostbyname(s.gethostname()))
 
 THREADWAITTIME = 1
 SERVERPORT = 9000
-BINDADDRESS = "0.0.0.0"     # using the 0.0.0 address 
+BINDADDRESS = ""     # using the 0.0.0 address 
 SPLITCHAR = "`"
 
 def removeClient(object):
@@ -42,11 +42,9 @@ class clientConnection():
         self.exit = False
 
         self.recv_thread = th.Thread(target = self.recieve_Data, daemon=True, args=())
-        self.send_thread = th.Thread(target = self.send_Data, daemon=True, args=())
 
     def start(self):
         self.recv_thread.start()
-        self.send_thread.start()
     
         # server will only send client info when the client asks for it with a '?'
     def recieve_Data(self):
@@ -58,6 +56,7 @@ class clientConnection():
                     self.close()
                     t.sleep(2)
                 elif message == "?":
+                    print(js.dumps(getClients()).encode("ascii"))
                     self.Socket.send(js.dumps(getClients()).encode("ascii"))
                 else:
                     pass
@@ -98,6 +97,7 @@ while True:
     tmpSocket , address = serverSocket.accept()
     print(address)
     details = tmpSocket.recv(65535).decode().strip("\n").split(SPLITCHAR)
+    print(details)
     if len(details) == 1:
         tmpSocket.close()
     else:
