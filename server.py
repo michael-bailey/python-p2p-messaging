@@ -56,6 +56,7 @@ class clientConnection():
                     self.close()
                     t.sleep(2)
                 elif message == "?":
+                    print(js.dumps(getClients()).encode("ascii"))
                     self.Socket.send(js.dumps(getClients()).encode("ascii"))
                 else:
                     pass
@@ -96,6 +97,7 @@ while True:
     tmpSocket , address = serverSocket.accept()
     print(address)
     details = tmpSocket.recv(65535).decode().strip("\n").split(SPLITCHAR)
+    print(details)
     if len(details) == 1:
         tmpSocket.close()
     else:
