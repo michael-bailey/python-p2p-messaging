@@ -461,9 +461,13 @@ class Program(tk.Tk):
                     onlineUserSocket.send("?".encode(SOCKETENCODING))
                     clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
                     for i in clients.keys():
+                        if i == self.userID:
+                            pass
+                        else:
                             self.paneLeftClients.insert(clients[i][0] + ", " + i)
                     self.changeServer == False
                 except Exception as e:
+
                     currentConnection = ""
                     print(e.args)
                     self.changeServer == False
@@ -523,29 +527,27 @@ class Program(tk.Tk):
 
     # check for online servers
     def GetOnlineServers(self):
-        count = 0
         print(self.serverFile)
         while 1:
-            onlineServerSocket = s.socket()
-            count = count + 1
             self.paneLeftServers.clear()
-            for i in self.serverFile:
-                try:
-                    onlineServerSocket = s.socket()
-                    onlineServerSocket.connect((i.strip("\n"),9000))
-                    onlineServerSocket.send("1".encode("ascii"))
-                    onlineServerSocket.close()
-                    self.paneLeftServers.insert(i)
-                except Exception as e:
-                    if e.args[0] == 8:
-                        pass
-                    elif e.args[0] == 51:
-                        pass
-                    else:
-                        print(e.args)
-                        
-                        print("get online server thread")
-            print(count)
+            with th.Lock() as lock:
+                onlineServerSocket = s.socket()
+                
+                for i in self.serverFile:
+                    try:
+                        onlineServerSocket = s.socket()
+                        onlineServerSocket.connect((i.strip("\n"),9000))
+                        onlineServerSocket.send("1".encode("ascii"))
+                        onlineServerSocket.close()
+                        self.paneLeftServers.insert(i)
+                    except Exception as e:
+                        if e.args[0] == 8 or e.args[0] == 10061:
+                            pass
+                        elif e.args[0] == 51:
+                            pass
+                        else:
+                            print(e.args)
+                            print("get online server thread\n", e.args)
             t.sleep(THREADWAITTIME)
         print("get online server thread closing")
         return 0
@@ -556,7 +558,7 @@ def main():
     if LOGINFILE not in os.listdir():
         loginWindow = loginBox()
         # wait a second for the file to write
-        t.sleep(1)
+        t.sleep()
 
     P = Program()
 
