@@ -22,6 +22,15 @@ PRIMEFILE = "primes.txt"
 SERVERFILE = "servers.txt"
 SOCKETENCODING = "ascii"
 
+NETWORKERRORCODES = [
+                    8,
+                    10060,
+                    10061,
+                    51
+                    ]
+
+
+
 """
 ------------notes------------
     - could use pyqt5 (might be easier than tkinter, also look better)
@@ -168,17 +177,15 @@ class scrollListBox(tk.Frame):
 # will be used to add a exit butto
 # and other features in the future
 class menuBar(tk.Menu):
-    def __init__(self, parent, exitClicked=sys.exit, forceSendWindow=None):
+    def __init__(self, parent, exitClicked=sys.exit):
         super().__init__(parent)
         
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
-        if forceSendWindow == None:
-            self.fileMenu.add_command(label="not avalible")
-        else:
-            self.fileMenu.add_command(label="force send menu", command=forceSendWindow)
         self.fileMenu.add_command(label="exit", command=lambda: tk.mess)
         self.add_cascade(label="file", menu=self.fileMenu)
+
+
 
 # this displays messages to the user 
 class messageFrame(tk.Frame):
@@ -253,7 +260,7 @@ class loginBox(tk.Tk):
         # write credentials to a file
         loginFile.write(username + "\n")
         # hash password for security
-        loginFile.write(hash(password) + "\n")
+        loginFile.write(userID + "\n")
         # hash hashed password to generate a userid
         loginFile.write(userID + "\n")
         loginFile.close()
@@ -306,6 +313,7 @@ class Program(tk.Tk):
         self.userName = ""
         self.passwd = ""
         self.userID = ""
+        self.currentClient = ""
         self.serverFile = open(SERVERFILE, "r").readlines()
         self.protocolString = ""
         self.changeServer = False
@@ -323,6 +331,7 @@ class Program(tk.Tk):
         #print an error message to describe what happened
         except Exception as e:
             print(e.args)
+            details_file.close()
 
         self.protocolString = self.userID + SPLITCHAR + self.userName 
         print(self.protocolString)
@@ -335,7 +344,7 @@ class Program(tk.Tk):
         # creating widget definitions
         self.paneRoot = tk.PanedWindow(self, handlepad=16, showhandle=True)
         self.paneLeft = tk.PanedWindow(self, showhandle=True, orient=tk.VERTICAL)
-        self.paneLeftClients = scrollListBox(self)
+        self.paneLeftClients = scrollListBox(self, on_click=self.change_client)
         self.paneLeftServers = scrollListBox(self, on_click=self.change_Server)
         self.PaneRootMessages = messageFrame(self, send_command=self.send_message)
         # linking widgets together
@@ -361,8 +370,12 @@ class Program(tk.Tk):
 
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
-        print("changing client")
-        self.changeClient = True
+        # open the clients messages file
+        #try:
+        # read from the file
+        # output each line as a separate item on the messages list box
+        # change the currentClient variable to reflect changes
+        self.currentClient = self.paneLeftClients.get()
 
     # called when a server is selected from the server pane
     def change_Server(self, event):
@@ -373,7 +386,7 @@ class Program(tk.Tk):
 
     
     def onClose(self):
-        exit(0)
+        sys.exit()
 
     # check for any user sending a message
     def getIncomingConnections(self):
@@ -393,26 +406,29 @@ class Program(tk.Tk):
             path = "messages\\" + message[0] + ".txt"
 
             # test for sender file
+
             # generate a string to be entered to the file
             # depending on any errors that occur
-            try:
-                file = open(path, 'a')
-                fileEntry = t.strftime("%d %m %Y : ") + message[2]
-            # if the file isnt found create the file
-            except FileNotFoundError as e:
-                file = open(path, 'r')
-                fileEntry = t.strftime("%d %m %Y : ") + message[2]
-            # any unexpected errors write to a backup file so not to miss it
-            except exception as e:
-                print("recieving error", e.args, "attempting to save to a backup file")
-                file = open("backup messages.txt", 'a')
-                fileEntry = t.strftime("%d %m %Y : ") + message[2]
-            #eventually write the message to the file and close it
-            finally:
-                file.append(fileEntry)
-                file.close()
+            with th.Lock():
+                try:
+                    file = open(path, 'a')
+                    fileEntry = t.strftime("%d %m %Y : ") + message[2]
+                # if the file isnt found create the file
+                except FileNotFoundError as e:
+                    file = open(path, 'r')
+                    fileEntry = t.strftime("%d %m %Y : ") + message[2]
+                # any unexpected errors write to a backup file so not to miss it
+                except exception as e:
+                    print("recieving error", e.args, "attempting to save to a backup file")
+                    file = open("backup messages.txt", 'a')
+                    fileEntry = message[0] + " " + message[1] + " " + t.strftime("%d %m %Y : ") + message[2]
+                #eventually write the message to the file and close it
+                finally:
+                    file.append(fileEntry)
+                    file.close()
 
             # if the sender is the currently active user insert onto the message view
+            
             
 
         print("incoming connection lister is closing")
@@ -433,11 +449,15 @@ class Program(tk.Tk):
                         print("disconnecting")
                         onlineUserSocket.close()
                         currentConnection = ""
-                    # client isnt connected procede anyway
+                    # client didnt connect then reset
                     except Exception as e:
-                        print("not connected [get online user thread]")
-                        print(e.args)
-                        currentConnection = ""
+                        # if error code is recognised the pas over the error
+                        if e.args[0] in NETWORKERRORCODES:
+                            currentConnection = ""
+                            pass
+                        else:
+                            print("not connected\nonline user thread", e.args)
+                            currentConnection = ""
                 
                 # get next servers details
                 onlineUserSocket = s.socket()
@@ -450,8 +470,9 @@ class Program(tk.Tk):
                     onlineUserSocket.send(self.protocolString.encode("ascii"))
                     self.changeServer == False
                 except Exception as e:
-                    currentConnection = ""
-                    self.changeServer == False
+                    if e.args[0] in NETWORKERRORCODES:
+                        currentConnection = ""
+                        self.changeServer == False
                     pass
             
             # otherwise recieve data from the server
@@ -461,14 +482,22 @@ class Program(tk.Tk):
                     onlineUserSocket.send("?".encode(SOCKETENCODING))
                     clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
                     for i in clients.keys():
+                        if i == self.userID:
+                            pass
+                        else:
                             self.paneLeftClients.insert(clients[i][0] + ", " + i)
                     self.changeServer == False
                 except Exception as e:
-                    currentConnection = ""
-                    print(e.args)
-                    self.changeServer == False
+                    if e.args in NETWORKERRORCODES:
+                        currentConnection = ""
+                        self.changeServer == False
+                    else:
+                        print("not connected\nonline user thread", e.args)
+                        currentConnection = ""
+                        self.changeServer == False
+            # otherwise do noting
             else:
-                print("notconnected")
+                pass
             t.sleep(THREADWAITTIME)
         return 0
                  
@@ -523,29 +552,26 @@ class Program(tk.Tk):
 
     # check for online servers
     def GetOnlineServers(self):
-        count = 0
         print(self.serverFile)
         while 1:
-            onlineServerSocket = s.socket()
-            count = count + 1
             self.paneLeftServers.clear()
-            for i in self.serverFile:
-                try:
-                    onlineServerSocket = s.socket()
-                    onlineServerSocket.connect((i.strip("\n"),9000))
-                    onlineServerSocket.send("1".encode("ascii"))
-                    onlineServerSocket.close()
-                    self.paneLeftServers.insert(i)
-                except Exception as e:
-                    if e.args[0] == 8:
-                        pass
-                    elif e.args[0] == 51:
-                        pass
-                    else:
-                        print(e.args)
-                        
-                        print("get online server thread")
-            print(count)
+            with th.Lock() as lock:
+                onlineServerSocket = s.socket()
+                
+                for i in self.serverFile:
+                    try:
+                        onlineServerSocket = s.socket()
+                        onlineServerSocket.connect((i.strip("\n"),9000))
+                        onlineServerSocket.send("1".encode("ascii"))
+                        onlineServerSocket.close()
+                        self.paneLeftServers.insert(i)
+                    except Exception as e:
+                        # error code 8 for unix error code 10060 or 10061 for nt
+                        if e.args[0] in NETWORKERRORCODES:
+                            pass
+                        else:
+                            print(e.args)
+                            print("get online server thread\n", e.args)
             t.sleep(THREADWAITTIME)
         print("get online server thread closing")
         return 0
