@@ -26,7 +26,10 @@ NETWORKERRORCODES = [
                     8,
                     10060,
                     10061,
-                    51
+                    51,
+                    11001,
+                    111,
+                    61
                     ]
 
 
@@ -250,8 +253,13 @@ class loginBox(tk.Tk):
     def enter(self):
         print("pressed") 
         # as this is used for the unique identifier later in the program
+
         username = self.usernameInput.get()
         password = self.passwordInput.get()
+
+        if password == "":
+            return 0
+
         userID = username + password
         userID = str(hash(userID))
 
@@ -386,6 +394,7 @@ class Program(tk.Tk):
 
     
     def onClose(self):
+        t.sleep(1)
         sys.exit()
 
     # check for any user sending a message
@@ -499,6 +508,8 @@ class Program(tk.Tk):
             else:
                 pass
             t.sleep(THREADWAITTIME)
+        
+        onlineUserSocket.close()
         return 0
                  
 
@@ -570,8 +581,7 @@ class Program(tk.Tk):
                         if e.args[0] in NETWORKERRORCODES:
                             pass
                         else:
-                            print(e.args)
-                            print("get online server thread\n", e.args)
+                            raise
             t.sleep(THREADWAITTIME)
         print("get online server thread closing")
         return 0

@@ -95,19 +95,18 @@ clients = []
 
 while True:
     tmpSocket , address = serverSocket.accept()
-    print(address)
     details = tmpSocket.recv(65535).decode().strip("\n").split(SPLITCHAR)
     print(details)
     if len(details) == 1:
         tmpSocket.close()
     else:
+        print(address)
         try:
             print(address)
             tmpObject = clientConnection(details[0], details[1], address, tmpSocket)
             clients.append(tmpObject)
-            print("debug1", clients)
             clients[clients.index(tmpObject)].start()
-            print(clients)
+            print("current client object : ", clients)
         except Exception as e:
-            print(e.args)
+            print("error with connection", e.args)
             tmpSocket.close()
