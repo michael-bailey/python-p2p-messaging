@@ -89,18 +89,18 @@ class clientConnection():
 
 serverSocket = s.socket()
 serverSocket.bind((BINDADDRESS, SERVERPORT))
-serverSocket.listen()
+serverSocket.listen(7)
 
 clients = []
 
 while True:
     tmpSocket , address = serverSocket.accept()
-    print(address)
+    print("connection from", address)
     details = tmpSocket.recv(65535).decode().strip("\n").split(SPLITCHAR)
-    print(details)
     if len(details) == 1:
         tmpSocket.close()
     else:
+        print("client details", details)
         try:
             print(address)
             tmpObject = clientConnection(details[0], details[1], address, tmpSocket)
