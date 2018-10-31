@@ -333,14 +333,17 @@ class Program(tk.Tk):
         self.paneRoot.add(self.PaneRootMessages)
         
         # create handler threads    
+        self.getIncomingConnectionThread = th.Thread(target=self.getIncomingConnections, daemon=True)
         self.getOnlineUsersThread = th.Thread(target=self.getOnlineUsers, daemon=True)
         self.getOnlineServerThread = th.Thread(target=self.GetOnlineServers, daemon=True)
 
         # set the name of them for debugging
+        self.getIncomingConnectionThread.setName("get imcomming connections")
         self.getOnlineUsersThread.setName("get online servers")
         self.getOnlineServerThread.setName("online server thread")
 
         # start threads
+        self.getIncomingConnectionThread.start()
         self.getOnlineUsersThread.start()
         self.getOnlineServerThread.start()
 
@@ -352,6 +355,8 @@ class Program(tk.Tk):
     #this function sends a message to the currently selected client
     def send_message(self, event):
         print("sending message")
+
+        self.clients[i][0]
         # get message from text box
         # try send to the client
         # if successfull add to the users file 
@@ -362,11 +367,20 @@ class Program(tk.Tk):
     def change_client(self, event):
 
         # open the clients messages file
-        
+        self.currentClient = self.paneLeftClients.get().split(", ")[0]
+
+        # if tkinter didnt pick up on the click (-_-) clear the list box
+        if self.currentClient != "":
+
+
+
+
+            filepath = "messages\\" + self.currentClient
         # read from the file
+        userFile = 
         # output each line as a separate item on the messages list box
         # change the currentClient variable to reflect changes
-        self.currentClient = self.paneLeftClients.get()
+
 
     # called when a server is selected from the server pane
     def change_Server(self, event):
@@ -387,12 +401,13 @@ class Program(tk.Tk):
         clientListenSocket.bind((BINDADDRESS, CLIENTPORT))
         clientListenSocket.listen(5)
 
-        while not self.exit:
+        while 1:
             # accept connection
             connectedSocket, address = clientListenSocket.accept()
-
+            print(address)
             # recieve sender details and message
             message = connectedSocket.recv(65535).decode().split(SPLITCHAR)
+            print(message)
 
             # construct path to senders file (double slash to escape the character)
             path = "messages\\" + message[0] + ".txt"
@@ -405,31 +420,35 @@ class Program(tk.Tk):
                 try:
                     file = open(path, 'a')
                     fileEntry = t.strftime("%d %m %Y : ") + message[2]
+                    file.write(fileEntry)
                 # if the file isnt found create the file
                 except FileNotFoundError as e:
-                    file = open(path, 'r')
+                    file = open(path, 'w')
                     fileEntry = t.strftime("%d %m %Y : ") + message[2]
+                    file.write(fileEntry)
                 # any unexpected errors write to a backup file so not to miss it
-                except exception as e:
+                except Exception as e:
                     print("recieving error", e.args, "attempting to save to a backup file")
                     file = open("backup messages.txt", 'a')
                     fileEntry = message[0] + " " + message[1] + " " + t.strftime("%d %m %Y : ") + message[2]
+                    file.write(fileEntry)
                 #eventually write the message to the file and close it
                 finally:
-                    file.append(fileEntry)
                     file.close()
 
             # if the sender is the currently active user insert onto the message view
-            #if self.active_Client
+            if self.active_Client == self.paneLeftClients.get():
+
             
 
-        print("incoming connection lister is closing")
+        print("incoming_connection lister is closing")
 
     # get user list from server
     def getOnlineUsers(self):
         onlineUserSocket = s.socket()
         currentConnection = ""
         
+
 
         while 1:
             # is client changing servers
@@ -477,7 +496,7 @@ class Program(tk.Tk):
                         if i == self.userID:
                             pass
                         else:
-                            self.paneLeftClients.insert(clients[i][0] + ", " + i)
+                            self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
                     self.changeServer == False
                 except Exception as e:
                     if e.args in NETWORKERRORCODES:
