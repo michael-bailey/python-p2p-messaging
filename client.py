@@ -33,7 +33,6 @@ NETWORKERRORCODES = [
                     ]
 
 
-
 """
 ------------notes------------
     - could use pyqt5 (might be easier than tkinter, also look better)
@@ -278,35 +277,6 @@ class loginBox(tk.Tk):
     def exit(self):
         sys.exit(0)
 
-"""
-class forceSendWindow(tk.toplevel):
-    def __init__(self):
-        super().__init__()
-
-        # definning the window widgets
-        self.ipLabel = tk.Label(text="usersIP:")
-        self.messageLabel = tk.Label(text="message:")
-        self.ipEntry = tk.Entry()
-        self.messageEntry = tk.Entry()
-        self.sendButton = tk.Button(text="send!")
-        self.closeButton = tk.Button(text="close")
-
-        #setting them to a grid
-        self.ipLabel.grid(row=0,column=0)
-        self.messageLabel.grid(row=1,column=0)
-        self.ipEntry.grid(row=0,column=1)
-        self.messageEntry.grid(row=1,column=1)
-        self.sendButton.grid(row=2,column=0)
-        self.closeButton.grid(row=2,column=1)
-
-    # defining the send message function (will be used in the main window)
-    def sendMessage():
-        pass
-    # function to close the window if not needed   
-    def closeWindow():
-        self.destroy()
-"""   
-
 
 # the main program
 class Program(tk.Tk):
@@ -326,6 +296,7 @@ class Program(tk.Tk):
         self.protocolString = ""
         self.changeServer = False
         self.changeClient = False
+        self.clients = {}
 
         # getting user details from a file
         try:
@@ -361,10 +332,17 @@ class Program(tk.Tk):
         self.paneRoot.add(self.paneLeft)
         self.paneRoot.add(self.PaneRootMessages)
         
-        # create handler threads
-        #self. = th.Thread(target=self., daemon=True).start()    
-        self.getOnlineUsersThread = th.Thread(target=self.getOnlineUsers, daemon=True).start()
-        self.getOnlineServerThread = th.Thread(target=self.GetOnlineServers, daemon=True).start()
+        # create handler threads    
+        self.getOnlineUsersThread = th.Thread(target=self.getOnlineUsers, daemon=True)
+        self.getOnlineServerThread = th.Thread(target=self.GetOnlineServers, daemon=True)
+
+        # set the name of them for debugging
+        self.getOnlineUsersThread.setName("get online servers")
+        self.getOnlineServerThread.setName("online server thread")
+
+        # start threads
+        self.getOnlineUsersThread.start()
+        self.getOnlineServerThread.start()
 
         # packing widgets
         self.paneRoot.pack(fill=tk.BOTH,expand=1)
@@ -374,12 +352,17 @@ class Program(tk.Tk):
     #this function sends a message to the currently selected client
     def send_message(self, event):
         print("sending message")
-        pass
+        # get message from text box
+        # try send to the client
+        # if successfull add to the users file 
+        # add to the message list box
+        
 
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
+
         # open the clients messages file
-        #try:
+        
         # read from the file
         # output each line as a separate item on the messages list box
         # change the currentClient variable to reflect changes
@@ -437,7 +420,7 @@ class Program(tk.Tk):
                     file.close()
 
             # if the sender is the currently active user insert onto the message view
-            
+            #if self.active_Client
             
 
         print("incoming connection lister is closing")
@@ -446,7 +429,7 @@ class Program(tk.Tk):
     def getOnlineUsers(self):
         onlineUserSocket = s.socket()
         currentConnection = ""
-        clients = {}
+        
 
         while 1:
             # is client changing servers
@@ -485,12 +468,12 @@ class Program(tk.Tk):
                     pass
             
             # otherwise recieve data from the server
-            elif currentConnection != "":
+            if currentConnection != "":
                 self.paneLeftClients.clear()
                 try:
                     onlineUserSocket.send("?".encode(SOCKETENCODING))
-                    clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
-                    for i in clients.keys():
+                    self.clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
+                    for i in self.clients.keys():
                         if i == self.userID:
                             pass
                         else:
@@ -511,55 +494,7 @@ class Program(tk.Tk):
         
         onlineUserSocket.close()
         return 0
-                 
-
                 
-
-        """
-        onlineUserSocket = s.socket()
-        while not self.exit:
-            # check if the client is changing server
-            if self.changeServer == True:
-                # if not connected?
-                if self.serverConnectionActive == "":
-                    onlineUserSocket.connect((self.paneLeftServers.get(), SERVERPORT))
-                    onlineUserSocket.send(self.protocolString.encode(SOCKETENCODING))
-                    self.serverConnectionActive = self.paneLeftServers.get()
-                    print("previous connection = ", self.serverConnectionActive)
-                    self.changeServer = False
-                # otherwise tell current server client is leaving and change connection
-                else:
-                    onlineUserSocket.send("close".encode(SOCKETENCODING))
-                    onlineUserSocket.connect((self.paneLeftServers.get(), SERVERPORT))
-                    onlineUserSocket.send(self.protocolString.encode(SOCKETENCODING))
-                    self.serverConnectionActive = self.paneLeftServers.get()
-                    print("was connected", self.serverConnectionActive)
-                    self.changeServer = False
-            # otherwise get clients
-            elif self.serverConnectionActive != "":
-                print("clearing panel")
-                self.paneLeftClients.clear()
-                try:
-                    print("getting users")
-                    self.clients = js.loads(onlineUserSocket.recv(BUFFERSIZE).decode())
-                    print(":users:")
-                    print(self.clients)
-                    self.paneLeftClients.clear()
-                    for i in self.clients.keys():
-                        self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
-                except Exception as e:
-                    self.serverConnectionActive = ""
-
-                    print(e.args)
-            t.sleep(2)
-        print("sending", ("close").encode(SOCKETENCODING))
-        onlineUserSocket.send("close".encode(SOCKETENCODING))
-        t.sleep(1)
-        print("closing socket")
-        onlineUserSocket.close()
-        print("get online user thread is exiting")
-
-"""
 
     # check for online servers
     def GetOnlineServers(self):
