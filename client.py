@@ -352,34 +352,85 @@ class Program(tk.Tk):
 
         tk.mainloop()
 
+
+
+
+
+
+
+
+
+
+
     #this function sends a message to the currently selected client
     def send_message(self, event):
         print("sending message")
 
-        self.clients[i][0]
+        # get current client details
+        clientID = self.currentClient[1]
+        clientIP = self.clients[clientID][1]
+
         # get message from text box
+
         # try send to the client
         # if successfull add to the users file 
         # add to the message list box
         
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
 
-        # open the clients messages file
-        self.currentClient = self.paneLeftClients.get().split(", ")[0]
+        # construct path to messages file
+        self.currentClient = self.paneLeftClients.get().split(", ")
+        filepath = "messages\\" + self.currentClient[1]
 
-        # if tkinter didnt pick up on the click (-_-) clear the list box
-        if self.currentClient != "":
+        # check if tkinter didnt pick up on the listbox click (usually common) then clear the list box
+        if self.currentClient[1] != "":
+            
+            # open file and get any saved messages
+            file = open(filepath, "r")
+            messages = file.readlines()
+            self.PaneRootMessages.list_clear()
 
+            for i in messages:
+                self.PaneRootMessages.list_insert(i)
+        # clear the list because tkinter diddnt pick up on the click
+        else:
+            self.PaneRootMessages.list_clear()
 
 
 
             filepath = "messages\\" + self.currentClient
         # read from the file
-        userFile = 
+        userFile = None
         # output each line as a separate item on the messages list box
         # change the currentClient variable to reflect changes
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     # called when a server is selected from the server pane
