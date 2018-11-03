@@ -382,7 +382,7 @@ class Program(tk.Tk):
 
             # attept to open the file and socket to capture any errors befor they occur
             sender_socket.connect(clientIP, CLIENTPORT)
-            file = open("messages\\" + clientID + ".txt", "a")
+            file = open("messages/" + clientID + ".txt", "a")
 
             # try send to the client and write to file
             sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
@@ -403,15 +403,23 @@ class Program(tk.Tk):
 
         # construct path to messages file
         self.currentClient = self.paneLeftClients.get().split(", ")
-        filepath = "messages\\" + self.currentClient[1]
+        filepath = "messages/" + self.currentClient[1] + ".txt"
 
         # check if tkinter didnt pick up on the listbox click (usually common) then clear the list box
         if self.currentClient[1] != "":
             
             # open file and get any saved messages
-            file = open(filepath, "r")
-            messages = file.readlines()
-            self.PaneRootMessages.list_clear()
+            try:
+                file = open(filepath, "r")
+                messages = file.readlines()
+
+            except Exception as e:
+                if e.args[0] == 2:
+                    file = open(filepath, "w")
+                    
+                self.PaneRootMessages.list_clear()
+
+                print("error changing client", e.args)
 
             for i in messages:
                 self.PaneRootMessages.list_insert(i)
@@ -421,7 +429,7 @@ class Program(tk.Tk):
 
 
 
-            filepath = "messages\\" + self.currentClient
+            filepath = "messages/" + self.currentClient
         # read from the file
         userFile = None
         # output each line as a separate item on the messages list box
@@ -444,8 +452,7 @@ class Program(tk.Tk):
     def change_Server(self, event):
         print("changing server")
         self.changeServer = True
-        t.sleep(1)
-        self.changeServer = False
+        
 
     
     def onClose(self):
@@ -468,7 +475,7 @@ class Program(tk.Tk):
             print(message)
 
             # construct path to senders file (double slash to escape the character)
-            path = "messages\\" + message[0] + ".txt"
+            path = "messages/" + message[0] + ".txt"
 
             # test for sender file
 
@@ -508,11 +515,13 @@ class Program(tk.Tk):
         while 1:
             # is client changing servers
             if self.changeServer == True:
+                self.changeServer = False
                 # does the client have a connection if so close it
                 if currentConnection != "":
                     try:
                         onlineUserSocket.send("close".encode(SOCKETENCODING))
                         print("disconnecting")
+                        t.sleep(1)
                         onlineUserSocket.close()
                         currentConnection = ""
                     # client didnt connect then reset
@@ -520,6 +529,7 @@ class Program(tk.Tk):
                         # if error code is recognised the pas over the error
                         if e.args[0] in NETWORKERRORCODES:
                             currentConnection = ""
+                            print("network error", e.args)
                             pass
                         else:
                             print("not connected\nonline user thread", e.args)
@@ -542,7 +552,7 @@ class Program(tk.Tk):
                     pass
             
             # otherwise recieve data from the server
-            if currentConnection != "":
+            elif currentConnection != "":
                 self.paneLeftClients.clear()
                 try:
                     onlineUserSocket.send("?".encode(SOCKETENCODING))
