@@ -366,28 +366,35 @@ class Program(tk.Tk):
     def send_message(self, event):
         print("sending message")
 
+        senderror = 0
+
         # get current client details
         clientID = self.currentClient[1]
         clientIP = self.clients[clientID][1]
 
         # get message from text box
+        message = self.PaneRootMessages.entry_get()
 
-        # try send to the client
-        # if successfull add to the users file 
-        # add to the message list box
-        
+        # try send to the client and write to file
+        try:
+            #make object
+            sender_socket = s.socket()
 
+            # attept to open the file and socket to capture any errors befor they occur
+            sender_socket.connect(clientIP, CLIENTPORT)
+            file = open("messages\\" + clientID + ".txt", "a")
 
+            # try send to the client and write to file
+            sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
+            file.write(t.strftime("%d %m %Y : ") + message)
 
+            #then add them to the message box (as this will be the active client)
+            self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ") + messages)
 
-
-
-
-
-
-
-
-
+        except Exception as e:
+            print("failed to send", e.args, "not sent")
+            sender_socket.close()
+            file.close()
 
 
 
@@ -488,10 +495,9 @@ class Program(tk.Tk):
                     file.close()
 
             # if the sender is the currently active user insert onto the message view
-            if self.active_Client == self.paneLeftClients.get():
-
-            
-
+            if self.active_Client == message[0]:
+                self.PaneRootMessages.insert(fileEntry)
+   
         print("incoming_connection lister is closing")
 
     # get user list from server
@@ -499,8 +505,6 @@ class Program(tk.Tk):
         onlineUserSocket = s.socket()
         currentConnection = ""
         
-
-
         while 1:
             # is client changing servers
             if self.changeServer == True:
