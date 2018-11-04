@@ -363,38 +363,39 @@ class Program(tk.Tk):
 
 
     #this function sends a message to the currently selected client
-    def send_message(self, event):
-        print("sending message")
+    def send_message(self):
+        if self.currentConnection != "" and self.currentClient != "":
+            print("sending message")
 
-        senderror = 0
+            senderror = 0
 
-        # get current client details
-        clientID = self.currentClient[1]
-        clientIP = self.clients[clientID][1]
+            # get current client details
+            clientID = self.currentClient[1]
+            clientIP = self.clients[clientID][1]
 
-        # get message from text box
-        message = self.PaneRootMessages.entry_get()
-
-        # try send to the client and write to file
-        try:
-            #make object
-            sender_socket = s.socket()
-
-            # attept to open the file and socket to capture any errors befor they occur
-            sender_socket.connect(clientIP, CLIENTPORT)
-            file = open("messages/" + clientID + ".txt", "a")
+            # get message from text box
+            message = self.PaneRootMessages.entry_get()
 
             # try send to the client and write to file
-            sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
-            file.write(t.strftime("%d %m %Y : ") + message)
+            try:
+                #make object
+                sender_socket = s.socket()
 
-            #then add them to the message box (as this will be the active client)
-            self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ") + messages)
+                # attept to open the file and socket to capture any errors befor they occur
+                sender_socket.connect(clientIP, CLIENTPORT)
+                file = open("messages/" + clientID + ".txt", "a")
 
-        except Exception as e:
-            print("failed to send", e.args, "not sent")
-            sender_socket.close()
-            file.close()
+                # try send to the client and write to file
+                sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
+                file.write(t.strftime("%d %m %Y : ") + message)
+
+                #then add them to the message box (as this will be the active client)
+                self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ") + messages)
+
+            except Exception as e:
+                print("failed to send", e.args, "not sent")
+                sender_socket.close()
+                file.close()
 
 
 
@@ -510,49 +511,49 @@ class Program(tk.Tk):
     # get user list from server
     def getOnlineUsers(self):
         onlineUserSocket = s.socket()
-        currentConnection = ""
+        self.currentConnection = ""
         
         while 1:
             # is client changing servers
             if self.changeServer == True:
                 self.changeServer = False
                 # does the client have a connection if so close it
-                if currentConnection != "":
+                if self.currentConnection != "":
                     try:
                         onlineUserSocket.send("close".encode(SOCKETENCODING))
                         print("disconnecting")
                         t.sleep(1)
                         onlineUserSocket.close()
-                        currentConnection = ""
+                        self.currentConnection = ""
                     # client didnt connect then reset
                     except Exception as e:
                         # if error code is recognised the pas over the error
                         if e.args[0] in NETWORKERRORCODES:
-                            currentConnection = ""
+                            self.currentConnection = ""
                             print("network error", e.args)
                             pass
                         else:
                             print("not connected\nonline user thread", e.args)
-                            currentConnection = ""
+                            self.currentConnection = ""
                 
                 # get next servers details
                 onlineUserSocket = s.socket()
-                currentConnection = self.paneLeftServers.get()
-                print("next server = ", currentConnection)
+                self.self.currentConnection = self.paneLeftServers.get()
+                print("next server = ", self.self.currentConnection)
 
                 #connect to the server
                 try:
-                    onlineUserSocket.connect((currentConnection, SERVERPORT))
+                    onlineUserSocket.connect((self.currentConnection, SERVERPORT))
                     onlineUserSocket.send(self.protocolString.encode("ascii"))
                     self.changeServer == False
                 except Exception as e:
                     if e.args[0] in NETWORKERRORCODES:
-                        currentConnection = ""
+                        self.currentConnection = ""
                         self.changeServer == False
                     pass
             
             # otherwise recieve data from the server
-            elif currentConnection != "":
+            elif self.currentConnection != "":
                 self.paneLeftClients.clear()
                 try:
                     onlineUserSocket.send("?".encode(SOCKETENCODING))
@@ -565,11 +566,11 @@ class Program(tk.Tk):
                     self.changeServer == False
                 except Exception as e:
                     if e.args in NETWORKERRORCODES:
-                        currentConnection = ""
+                        self.currentConnection = ""
                         self.changeServer == False
                     else:
                         print("not connected\nonline user thread", e.args)
-                        currentConnection = ""
+                        self.currentConnection = ""
                         self.changeServer == False
             # otherwise do noting
             else:
