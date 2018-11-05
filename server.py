@@ -59,9 +59,11 @@ class clientConnection():
                     print(js.dumps(getClients()).encode("ascii"))
                     self.Socket.send(js.dumps(getClients()).encode("ascii"))
                 else:
-                    pass
-            except s.error as error:
-                print("error occured. closing client", self.ip[0], "errno", error.errno)
+                    print("no message removing client")
+                    self.close()
+                    
+            except Exception as e:
+                print("error occured. closing client", self.ip[0], "errno", e.args)
                 self.close()
                 t.sleep(2)
             t.sleep(THREADWAITTIME)
