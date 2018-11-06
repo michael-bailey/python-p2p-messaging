@@ -391,7 +391,7 @@ class Program(tk.Tk):
                 file.write(t.strftime("%d %m %Y : ") + message)
 
                 #then add them to the message box (as this will be the active client)
-                self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ") + messages)
+                self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ") + message)
 
             except Exception as e:
                 print("failed to send", e.args, "not sent")
@@ -458,9 +458,7 @@ class Program(tk.Tk):
 
     
     def onClose(self):
-        t.sleep(1)
-        
-        sys.exit()
+        self.destroy()
 
     # check for any user sending a message
     def getIncomingConnections(self):
@@ -624,6 +622,7 @@ def main():
         t.sleep(1)
 
     P = Program()
+    return 1
 
 if __name__ == "__main__":
     main()
