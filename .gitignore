@@ -7,3 +7,4 @@ config.json
 .vs/python-p2p-messaging/v15/.suo
 .vs/python-p2p-messaging/v15/.suo
 .vs/slnx.sqlite
+*.txt

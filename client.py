@@ -23,13 +23,13 @@ SERVERFILE = "servers.txt"
 SOCKETENCODING = "ascii"
 
 NETWORKERRORCODES = [
-                    8,
-                    10060,
-                    10061,
-                    51,
-                    11001,
-                    111,
-                    61
+                        8,
+#                       10061,
+                        51,
+#                       11001,
+#                       111,
+#                       10060,
+                        61
                     ]
 
 
@@ -184,7 +184,7 @@ class menuBar(tk.Menu):
         
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
-        self.fileMenu.add_command(label="exit", command=lambda: tk.mess)
+        self.fileMenu.add_command(label="exit", command=sys.exit)
         self.add_cascade(label="file", menu=self.fileMenu)
 
 
@@ -293,6 +293,7 @@ class Program(tk.Tk):
         self.userID = ""
         self.currentClient = ""
         self.serverFile = open(SERVERFILE, "r").readlines()
+        print(self.serverFile)
         self.protocolString = ""
         self.changeServer = False
         self.changeClient = False
@@ -458,6 +459,7 @@ class Program(tk.Tk):
     
     def onClose(self):
         t.sleep(1)
+        
         sys.exit()
 
     # check for any user sending a message
@@ -504,7 +506,7 @@ class Program(tk.Tk):
 
             # if the sender is the currently active user insert onto the message view
             if self.active_Client == message[0]:
-                self.PaneRootMessages.insert(fileEntry)
+                self.PaneRootMessages.list_insert(fileEntry)
    
         print("incoming_connection lister is closing")
 
@@ -538,8 +540,8 @@ class Program(tk.Tk):
                 
                 # get next servers details
                 onlineUserSocket = s.socket()
-                self.self.currentConnection = self.paneLeftServers.get()
-                print("next server = ", self.self.currentConnection)
+                self.currentConnection = self.paneLeftServers.get().strip("\n")
+                print("next server = ", self.currentConnection)
 
                 #connect to the server
                 try:
@@ -566,6 +568,7 @@ class Program(tk.Tk):
                     self.changeServer == False
                 except Exception as e:
                     if e.args in NETWORKERRORCODES:
+                        onlineUserSocket.send("close".encode("ascii"))
                         self.currentConnection = ""
                         self.changeServer == False
                     else:
@@ -588,8 +591,12 @@ class Program(tk.Tk):
             self.paneLeftServers.clear()
             with th.Lock() as lock:
                 onlineServerSocket = s.socket()
+                onlineServerSocket.settimeout(1)
                 
                 for i in self.serverFile:
+                    print(i.strip("\n",))
+                    if i.find("#") > -1:
+                        pass
                     try:
                         onlineServerSocket = s.socket()
                         onlineServerSocket.connect((i.strip("\n"),9000))
@@ -601,7 +608,9 @@ class Program(tk.Tk):
                         if e.args[0] in NETWORKERRORCODES:
                             pass
                         else:
+                            print(i)
                             raise
+                            pass
             t.sleep(THREADWAITTIME)
         print("get online server thread closing")
         return 0
