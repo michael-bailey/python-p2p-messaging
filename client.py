@@ -383,7 +383,7 @@ class Program(tk.Tk):
                 sender_socket = s.socket()
 
                 # attept to open the file and socket to capture any errors befor they occur
-                sender_socket.connect(clientIP, CLIENTPORT)
+                sender_socket.connect((clientIP, CLIENTPORT))
                 file = open("messages/" + clientID + ".txt", "a")
 
                 # try send to the client and write to file
@@ -438,27 +438,15 @@ class Program(tk.Tk):
         # change the currentClient variable to reflect changes
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     # called when a server is selected from the server pane
     def change_Server(self, event):
         print("changing server")
         self.changeServer = True
         
-
-    
+    # destroy window to exit program (avoids ide errors)
     def onClose(self):
         self.destroy()
+
 
     # check for any user sending a message
     def getIncomingConnections(self):
@@ -485,25 +473,25 @@ class Program(tk.Tk):
             with th.Lock():
                 try:
                     file = open(path, 'a')
-                    fileEntry = t.strftime("%d %m %Y : ") + message[2]
+                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + "\n"
                     file.write(fileEntry)
                 # if the file isnt found create the file
                 except FileNotFoundError as e:
                     file = open(path, 'w')
-                    fileEntry = t.strftime("%d %m %Y : ") + message[2]
+                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + "\n"
                     file.write(fileEntry)
                 # any unexpected errors write to a backup file so not to miss it
                 except Exception as e:
                     print("recieving error", e.args, "attempting to save to a backup file")
                     file = open("backup messages.txt", 'a')
-                    fileEntry = message[0] + " " + message[1] + " " + t.strftime("%d %m %Y : ") + message[2]
+                    fileEntry = message[0] + " " + message[1] + " " + t.strftime("%d %m %Y : ") + message[2]  + "\n"
                     file.write(fileEntry)
                 #eventually write the message to the file and close it
                 finally:
                     file.close()
 
             # if the sender is the currently active user insert onto the message view
-            if self.active_Client == message[0]:
+            if self.currentClient == message[0]:
                 self.PaneRootMessages.list_insert(fileEntry)
    
         print("incoming_connection lister is closing")
