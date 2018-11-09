@@ -24,7 +24,7 @@ SOCKETENCODING = "ascii"
 
 NETWORKERRORCODES = [
                         8,
-#                       10061,
+                        10061,
                         51,
 #                       11001,
 #                       111,
@@ -388,15 +388,18 @@ class Program(tk.Tk):
 
                 # try send to the client and write to file
                 sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
-                file.write(t.strftime("%d %m %Y : ") + message)
+                file.write(t.strftime("%d %m %Y : ") + message + "\n")
 
                 #then add them to the message box (as this will be the active client)
                 self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ") + message)
 
             except Exception as e:
                 print("failed to send", e.args, "not sent")
-                sender_socket.close()
-                file.close()
+                try:
+                    sender_socket.close()
+                    file.close()
+                except:
+                    pass
 
 
 
@@ -409,38 +412,37 @@ class Program(tk.Tk):
 
         # check if tkinter didnt pick up on the listbox click (usually common) then clear the list box
         if self.currentClient[1] != "":
-            
+            # clear the listbox
+            self.PaneRootMessages.list_clear()
+
             # open file and get any saved messages
             try:
                 file = open(filepath, "r")
                 messages = file.readlines()
 
+            # usually called when the file doent exist
             except Exception as e:
                 if e.args[0] == 2:
                     file = open(filepath, "w")
                     
                 self.PaneRootMessages.list_clear()
-
                 print("error changing client", e.args)
 
+            # iterate over messages
             for i in messages:
                 self.PaneRootMessages.list_insert(i)
+
         # clear the list because tkinter diddnt pick up on the click
         else:
             self.PaneRootMessages.list_clear()
-
-
-
             filepath = "messages/" + self.currentClient
-        # read from the file
-        userFile = None
-        # output each line as a separate item on the messages list box
-        # change the currentClient variable to reflect changes
-
+        
 
     # called when a server is selected from the server pane
     def change_Server(self, event):
         print("changing server")
+        self.currentClient = ""
+        self.PaneRootMessages.list_clear()
         self.changeServer = True
         
     # destroy window to exit program (avoids ide errors)
@@ -475,6 +477,10 @@ class Program(tk.Tk):
                     file = open(path, 'a')
                     fileEntry = t.strftime("%d %m %Y : ") + message[2] + "\n"
                     file.write(fileEntry)
+
+                    # if the sender is the currently active user insert onto the message view
+                    if self.currentClient[1] == message[0]:
+                        self.PaneRootMessages.list_insert(fileEntry)
                 # if the file isnt found create the file
                 except FileNotFoundError as e:
                     file = open(path, 'w')
@@ -491,7 +497,7 @@ class Program(tk.Tk):
                     file.close()
 
             # if the sender is the currently active user insert onto the message view
-            if self.currentClient == message[0]:
+            if self.currentClient[1] == message[0]:
                 self.PaneRootMessages.list_insert(fileEntry)
    
         print("incoming_connection lister is closing")
