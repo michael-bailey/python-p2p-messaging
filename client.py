@@ -183,7 +183,11 @@ class menuBar(tk.Menu):
         self.fileMenu.add_command(label="exit", command=sys.exit)
         self.add_cascade(label="file", menu=self.fileMenu)
 
-
+class messageBox(tk.Toplevel):
+    def __init__(self, message):
+        super().__init__()
+        self.messageLabel = tk.Label(self, text=message)
+        self.messageLabel.pack()
 
 # this displays messages to the user 
 class messageFrame(tk.Frame):
@@ -225,6 +229,9 @@ class loginBox(tk.Tk):
         super().__init__()
 
         self.title("login")
+
+        # create a login variable to be checked
+        self.didLogin = False
         
         #create object
         self.userLabel = tk.Label(self, text="username : ")
@@ -252,28 +259,62 @@ class loginBox(tk.Tk):
         username = self.usernameInput.get()
         password = self.passwordInput.get()
 
+        # if no password or username then dont login
         if password == "":
+            self.didLogin = False
             return 0
-        
-        password = hashing.sha256(password.encode("ascii")).hexdigest()
-        print(password)
 
-        userID = username + password
-        print(userID)
-        userID = str(hashing.sha256(userID.encode("ascii")).hexdigest())
-        print(userID)
+        if LOGINFILE not in os.listdir():
+            # pass the password into a sha256 hash function
+            password = hashing.sha256(password.encode("ascii")).hexdigest()
+            print(password)
 
-        loginFile = open(LOGINFILE, "w")
+            # combine to form the uid string to be hashed
+            userID = username + password
+            print(userID)
 
-        # write credentials to a file
-        loginFile.write(username + NEWLN)
-        # hash password for security
-        loginFile.write(password + NEWLN)
-        # hash hashed password to generate a userid
-        loginFile.write(userID + NEWLN)
-        loginFile.close()
+            # generate user id
+            userID = str(hashing.sha256(userID.encode("ascii")).hexdigest())
+            print(userID)
 
-        self.destroy()
+            # open the file for writing
+            loginFile = open(LOGINFILE, "w")
+
+            # write credentials to a file
+            loginFile.write(username + NEWLN)
+
+            # hash password for security
+            loginFile.write(password + NEWLN)
+
+            # hash hashed password to generate a userid
+            loginFile.write(userID + NEWLN)
+            loginFile.close()
+
+            # created a new user, login 
+            self.didLogin = True
+
+            # kill the window
+            self.destroy()
+        else:
+
+            # generate password hash for comparison
+            password = hashing.sha256(password.encode("ascii")).hexdigest()
+            print(password)
+            loginFile = open(LOGINFILE, "r").readlines()
+            print(loginFile)
+
+            # if details correct then let the user login
+            if username == loginFile[0].strip(NEWLN) and password == loginFile[1].strip(NEWLN):
+                self.didLogin = True
+                self.destroy()
+
+            # other wise then dont let them login and display a message
+            else:
+                self.didLogin = False
+                messageBox("incorrect login")
+            return 0
+
+
 
     def exit(self):
         sys.exit(0)
@@ -609,13 +650,15 @@ class Program(tk.Tk):
 
 # main function
 def main():
-        # if the login file doesnt exist then open login prompt
-    if LOGINFILE not in os.listdir():
-        loginWindow = loginBox()
-        # wait a second for the file to write
-        t.sleep(1)
+    
+    # run login window to check user details
+    loginWindow = loginBox()
 
-    P = Program()
+    # if login passed then load program
+    if loginWindow.didLogin == True:
+        P = Program()
+
+    # return a value to say that the program ended
     return 1
 
 if __name__ == "__main__":
