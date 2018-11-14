@@ -2,10 +2,9 @@
 
 import threading as th
 import hashlib as hashing
-import errno as error
 import tkinter as tk
+import platform as plat
 import socket as s
-import queue as Q
 import json as js
 import time as t
 import sys
@@ -32,6 +31,8 @@ NETWORKERRORCODES = [
                         61
                     ]
 
+# setting the new line char to a variable for ease of use
+NEWLN = "\n"
 
 """
 ------------notes------------
@@ -134,11 +135,6 @@ NETWORKERRORCODES = [
             exit
             enter
 """
-
-# to be used as part of the Ext' Euclid algorithm
-def GCD(num1, num2):
-    if num2 == 0: return num1
-    else: return GCD(num2, num1 % num2)
 
 # creating a composite widget that 
 # adds a scroll bar to the list widget
@@ -258,25 +254,29 @@ class loginBox(tk.Tk):
 
         if password == "":
             return 0
+        
+        password = hashing.sha256(password.encode("ascii")).hexdigest()
+        print(password)
 
         userID = username + password
-        userID = str(hash(userID))
+        print(userID)
+        userID = str(hashing.sha256(userID.encode("ascii")).hexdigest())
+        print(userID)
 
         loginFile = open(LOGINFILE, "w")
 
         # write credentials to a file
-        loginFile.write(username + "\n")
+        loginFile.write(username + NEWLN)
         # hash password for security
-        loginFile.write(userID + "\n")
+        loginFile.write(password + NEWLN)
         # hash hashed password to generate a userid
-        loginFile.write(userID + "\n")
+        loginFile.write(userID + NEWLN)
         loginFile.close()
 
         self.destroy()
 
     def exit(self):
         sys.exit(0)
-
 
 # the main program
 class Program(tk.Tk):
@@ -304,9 +304,9 @@ class Program(tk.Tk):
             details_file = open(LOGINFILE, "r")
             details = details_file.readlines()
             print(details)
-            self.userName = details[0].strip("\n")
-            self.passwd = details[1].strip("\n")
-            self.userID = details[2].strip("\n")
+            self.userName = details[0].strip(NEWLN)
+            self.passwd = details[1].strip(NEWLN)
+            self.userID = details[2].strip(NEWLN)
 
         #print an error message to describe what happened
         except Exception as e:
@@ -388,7 +388,7 @@ class Program(tk.Tk):
 
                 # try send to the client and write to file
                 sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
-                file.write(t.strftime("%d %m %Y : ") + message + "\n")
+                file.write(t.strftime("%d %m %Y : ") + message + NEWLN)
 
                 #then add them to the message box (as this will be the active client)
                 self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ") + message)
@@ -475,7 +475,7 @@ class Program(tk.Tk):
             with th.Lock():
                 try:
                     file = open(path, 'a')
-                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + "\n"
+                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + NEWLN
                     file.write(fileEntry)
 
                     # if the sender is the currently active user insert onto the message view
@@ -484,13 +484,13 @@ class Program(tk.Tk):
                 # if the file isnt found create the file
                 except FileNotFoundError as e:
                     file = open(path, 'w')
-                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + "\n"
+                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + NEWLN
                     file.write(fileEntry)
                 # any unexpected errors write to a backup file so not to miss it
                 except Exception as e:
                     print("recieving error", e.args, "attempting to save to a backup file")
                     file = open("backup messages.txt", 'a')
-                    fileEntry = message[0] + " " + message[1] + " " + t.strftime("%d %m %Y : ") + message[2]  + "\n"
+                    fileEntry = message[0] + " " + message[1] + " " + t.strftime("%d %m %Y : ") + message[2]  + NEWLN
                     file.write(fileEntry)
                 #eventually write the message to the file and close it
                 finally:
@@ -532,7 +532,7 @@ class Program(tk.Tk):
                 
                 # get next servers details
                 onlineUserSocket = s.socket()
-                self.currentConnection = self.paneLeftServers.get().strip("\n")
+                self.currentConnection = self.paneLeftServers.get().strip(NEWLN)
                 print("next server = ", self.currentConnection)
 
                 #connect to the server
@@ -586,12 +586,12 @@ class Program(tk.Tk):
                 onlineServerSocket.settimeout(1)
                 
                 for i in self.serverFile:
-                    print(i.strip("\n",))
+                    print(i.strip(NEWLN,))
                     if i.find("#") > -1:
                         pass
                     try:
                         onlineServerSocket = s.socket()
-                        onlineServerSocket.connect((i.strip("\n"),9000))
+                        onlineServerSocket.connect((i.strip(NEWLN),9000))
                         onlineServerSocket.send("1".encode("ascii"))
                         onlineServerSocket.close()
                         self.paneLeftServers.insert(i)
@@ -607,7 +607,7 @@ class Program(tk.Tk):
         print("get online server thread closing")
         return 0
 
-
+# main function
 def main():
         # if the login file doesnt exist then open login prompt
     if LOGINFILE not in os.listdir():
