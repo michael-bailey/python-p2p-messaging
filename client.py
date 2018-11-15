@@ -174,12 +174,14 @@ class scrollListBox(tk.Frame):
 # will be used to add a exit butto
 # and other features in the future
 class menuBar(tk.Menu):
-    def __init__(self, parent, exitClicked=sys.exit):
+    def __init__(self, parent, serverClicked, exitClicked=sys.exit):
         super().__init__(parent)
         
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
         self.fileMenu.add_command(label="exit", command=sys.exit)
+        self.fileMenu.add_separator()
+        self.fileMenu.add_command(label="update server list", command=serverClicked)
         self.add_cascade(label="file", menu=self.fileMenu)
 
 # simple message box for displaying messages
@@ -333,7 +335,7 @@ class Program(tk.Tk):
         self.passwd = ""
         self.userID = ""
         self.currentClient = ""
-        self.serverFile = None
+        self.serverFile = open(SERVERFILE, "r").readlines()
         self.protocolString = ""
         self.changeServer = False
         self.changeClient = False
@@ -358,7 +360,7 @@ class Program(tk.Tk):
 
         # creating the gui
         # defining menu bar
-        self.menubar = menuBar(self)
+        self.menubar = menuBar(self, serverClicked=self.update_server_list)
         self.config(menu=self.menubar)
         self.protocol("WM_DELETE_WINDOW", self.onClose)        
         # creating widget definitions
@@ -393,12 +395,14 @@ class Program(tk.Tk):
 
         tk.mainloop()
 
+    # changes a variable for easy server file updates
+    def update_server_list(self):
+        self.serverFile = open(SERVERFILE, "r").readlines()
+
     #this function sends a message to the currently selected client
     def send_message(self):
         if self.currentConnection != "" and self.currentClient != "":
             print("sending message")
-
-            senderror = 0
 
             # get current client details
             clientID = self.currentClient[1]
@@ -607,7 +611,7 @@ class Program(tk.Tk):
         print(self.serverFile)
 
         while 1:
-            with th.Lock() as lock:
+            with th.Lock():
 
                 self.paneLeftServers.clear()
             
@@ -635,8 +639,10 @@ class Program(tk.Tk):
                             pass
                         else:
                             print(i)
-                            raise
                             pass
+                
+                
+
             t.sleep(THREADWAITTIME)
         print("get online server thread closing")
         return 0
@@ -649,10 +655,10 @@ def main():
 
     # if login passed then load program
     if loginWindow.didLogin == True:
-        P = Program()
+        Program()
 
     # return a value to say that the program ended
-    return 1
+    return 0
 
 if __name__ == "__main__":
     main()
