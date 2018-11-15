@@ -25,9 +25,8 @@ NETWORKERRORCODES = [
                         8,
                         10061,
                         51,
-#                       11001,
-#                       111,
-#                       10060,
+                        11001,
+                        10060,
                         61
                     ]
 
@@ -183,6 +182,7 @@ class menuBar(tk.Menu):
         self.fileMenu.add_command(label="exit", command=sys.exit)
         self.add_cascade(label="file", menu=self.fileMenu)
 
+# simple message box for displaying messages
 class messageBox(tk.Toplevel):
     def __init__(self, message):
         super().__init__()
@@ -333,8 +333,7 @@ class Program(tk.Tk):
         self.passwd = ""
         self.userID = ""
         self.currentClient = ""
-        self.serverFile = open(SERVERFILE, "r").readlines()
-        print(self.serverFile)
+        self.serverFile = None
         self.protocolString = ""
         self.changeServer = False
         self.changeClient = False
@@ -394,16 +393,6 @@ class Program(tk.Tk):
 
         tk.mainloop()
 
-
-
-
-
-
-
-
-
-
-
     #this function sends a message to the currently selected client
     def send_message(self):
         if self.currentConnection != "" and self.currentClient != "":
@@ -442,8 +431,6 @@ class Program(tk.Tk):
                 except:
                     pass
 
-
-
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
 
@@ -478,7 +465,6 @@ class Program(tk.Tk):
             self.PaneRootMessages.list_clear()
             filepath = "messages/" + self.currentClient
         
-
     # called when a server is selected from the server pane
     def change_Server(self, event):
         print("changing server")
@@ -489,7 +475,6 @@ class Program(tk.Tk):
     # destroy window to exit program (avoids ide errors)
     def onClose(self):
         self.destroy()
-
 
     # check for any user sending a message
     def getIncomingConnections(self):
@@ -597,7 +582,7 @@ class Program(tk.Tk):
                         if i == self.userID:
                             pass
                         else:
-                            self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
+                            self.paneLeftClients.insert(self.clients[i][0] + ", " + i[:4])
                     self.changeServer == False
                 except Exception as e:
                     if e.args in NETWORKERRORCODES:
@@ -616,25 +601,33 @@ class Program(tk.Tk):
         onlineUserSocket.close()
         return 0
                 
-
     # check for online servers
     def GetOnlineServers(self):
+        self.serverFile = open(SERVERFILE, "r").readlines()
         print(self.serverFile)
+
         while 1:
-            self.paneLeftServers.clear()
             with th.Lock() as lock:
+
+                self.paneLeftServers.clear()
+            
                 onlineServerSocket = s.socket()
                 onlineServerSocket.settimeout(1)
                 
                 for i in self.serverFile:
                     print(i.strip(NEWLN,))
+                    # allows servers to be commented out
                     if i.find("#") > -1:
                         pass
+
+                    # try connecting to see if the server is online
                     try:
                         onlineServerSocket = s.socket()
                         onlineServerSocket.connect((i.strip(NEWLN),9000))
                         onlineServerSocket.send("1".encode("ascii"))
                         onlineServerSocket.close()
+
+                        # if connected add tot he list box
                         self.paneLeftServers.insert(i)
                     except Exception as e:
                         # error code 8 for unix error code 10060 or 10061 for nt
