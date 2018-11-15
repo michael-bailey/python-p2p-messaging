@@ -2,10 +2,9 @@
 
 import threading as th
 import hashlib as hashing
-import errno as error
 import tkinter as tk
+import platform as plat
 import socket as s
-import queue as Q
 import json as js
 import time as t
 import sys
@@ -27,11 +26,12 @@ NETWORKERRORCODES = [
                         10061,
                         51,
                         11001,
-#                       111,
                         10060,
                         61
                     ]
 
+# setting the new line char to a variable for ease of use
+NEWLN = "\n"
 
 """
 ------------notes------------
@@ -135,11 +135,6 @@ NETWORKERRORCODES = [
             enter
 """
 
-# to be used as part of the Ext' Euclid algorithm
-def GCD(num1, num2):
-    if num2 == 0: return num1
-    else: return GCD(num2, num1 % num2)
-
 # creating a composite widget that 
 # adds a scroll bar to the list widget
 # this enables: 
@@ -179,15 +174,22 @@ class scrollListBox(tk.Frame):
 # will be used to add a exit butto
 # and other features in the future
 class menuBar(tk.Menu):
-    def __init__(self, parent, exitClicked=sys.exit):
+    def __init__(self, parent, serverClicked, exitClicked=sys.exit):
         super().__init__(parent)
         
         #making file menu
         self.fileMenu = tk.Menu(self, tearoff=0)
         self.fileMenu.add_command(label="exit", command=sys.exit)
+        self.fileMenu.add_separator()
+        self.fileMenu.add_command(label="update server list", command=serverClicked)
         self.add_cascade(label="file", menu=self.fileMenu)
 
-
+# simple message box for displaying messages
+class messageBox(tk.Toplevel):
+    def __init__(self, message):
+        super().__init__()
+        self.messageLabel = tk.Label(self, text=message)
+        self.messageLabel.pack()
 
 # this displays messages to the user 
 class messageFrame(tk.Frame):
@@ -229,6 +231,9 @@ class loginBox(tk.Tk):
         super().__init__()
 
         self.title("login")
+
+        # create a login variable to be checked
+        self.didLogin = False
         
         #create object
         self.userLabel = tk.Label(self, text="username : ")
@@ -256,27 +261,65 @@ class loginBox(tk.Tk):
         username = self.usernameInput.get()
         password = self.passwordInput.get()
 
+        # if no password or username then dont login
         if password == "":
+            self.didLogin = False
             return 0
 
-        userID = username + password
-        userID = str(hash(userID))
+        if LOGINFILE not in os.listdir():
+            # pass the password into a sha256 hash function
+            password = hashing.sha256(password.encode("ascii")).hexdigest()
+            print(password)
 
-        loginFile = open(LOGINFILE, "w")
+            # combine to form the uid string to be hashed
+            userID = username + password
+            print(userID)
 
-        # write credentials to a file
-        loginFile.write(username + "\n")
-        # hash password for security
-        loginFile.write(userID + "\n")
-        # hash hashed password to generate a userid
-        loginFile.write(userID + "\n")
-        loginFile.close()
+            # generate user id
+            userID = str(hashing.sha256(userID.encode("ascii")).hexdigest())
+            print(userID)
 
-        self.destroy()
+            # open the file for writing
+            loginFile = open(LOGINFILE, "w")
+
+            # write credentials to a file
+            loginFile.write(username + NEWLN)
+
+            # hash password for security
+            loginFile.write(password + NEWLN)
+
+            # hash hashed password to generate a userid
+            loginFile.write(userID + NEWLN)
+            loginFile.close()
+
+            # created a new user, login 
+            self.didLogin = True
+
+            # kill the window
+            self.destroy()
+        else:
+
+            # generate password hash for comparison
+            password = hashing.sha256(password.encode("ascii")).hexdigest()
+            print(password)
+            loginFile = open(LOGINFILE, "r").readlines()
+            print(loginFile)
+
+            # if details correct then let the user login
+            if username == loginFile[0].strip(NEWLN) and password == loginFile[1].strip(NEWLN):
+                self.didLogin = True
+                self.destroy()
+
+            # other wise then dont let them login and display a message
+            else:
+                self.didLogin = False
+                messageBox("incorrect login")
+            return 0
+
+
 
     def exit(self):
         sys.exit(0)
-
 
 # the main program
 class Program(tk.Tk):
@@ -293,7 +336,6 @@ class Program(tk.Tk):
         self.userID = ""
         self.currentClient = ""
         self.serverFile = open(SERVERFILE, "r").readlines()
-        print(self.serverFile)
         self.protocolString = ""
         self.changeServer = False
         self.changeClient = False
@@ -304,9 +346,9 @@ class Program(tk.Tk):
             details_file = open(LOGINFILE, "r")
             details = details_file.readlines()
             print(details)
-            self.userName = details[0].strip("\n")
-            self.passwd = details[1].strip("\n")
-            self.userID = details[2].strip("\n")
+            self.userName = details[0].strip(NEWLN)
+            self.passwd = details[1].strip(NEWLN)
+            self.userID = details[2].strip(NEWLN)
 
         #print an error message to describe what happened
         except Exception as e:
@@ -318,7 +360,7 @@ class Program(tk.Tk):
 
         # creating the gui
         # defining menu bar
-        self.menubar = menuBar(self)
+        self.menubar = menuBar(self, serverClicked=self.update_server_list)
         self.config(menu=self.menubar)
         self.protocol("WM_DELETE_WINDOW", self.onClose)        
         # creating widget definitions
@@ -353,22 +395,14 @@ class Program(tk.Tk):
 
         tk.mainloop()
 
-
-
-
-
-
-
-
-
-
+    # changes a variable for easy server file updates
+    def update_server_list(self):
+        self.serverFile = open(SERVERFILE, "r").readlines()
 
     #this function sends a message to the currently selected client
     def send_message(self):
         if self.currentConnection != "" and self.currentClient != "":
             print("sending message")
-
-            senderror = 0
 
             # get current client details
             clientID = self.currentClient[1]
@@ -388,7 +422,7 @@ class Program(tk.Tk):
 
                 # try send to the client and write to file
                 sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
-                file.write(t.strftime("%d %m %Y : ") + message + "\n")
+                file.write(t.strftime("%d %m %Y : ") + message + NEWLN)
 
                 #then add them to the message box (as this will be the active client)
                 self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ") + message)
@@ -400,8 +434,6 @@ class Program(tk.Tk):
                     file.close()
                 except:
                     pass
-
-
 
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
@@ -437,7 +469,6 @@ class Program(tk.Tk):
             self.PaneRootMessages.list_clear()
             filepath = "messages/" + self.currentClient
         
-
     # called when a server is selected from the server pane
     def change_Server(self, event):
         print("changing server")
@@ -448,7 +479,6 @@ class Program(tk.Tk):
     # destroy window to exit program (avoids ide errors)
     def onClose(self):
         self.destroy()
-
 
     # check for any user sending a message
     def getIncomingConnections(self):
@@ -475,7 +505,7 @@ class Program(tk.Tk):
             with th.Lock():
                 try:
                     file = open(path, 'a')
-                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + "\n"
+                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + NEWLN
                     file.write(fileEntry)
 
                     # if the sender is the currently active user insert onto the message view
@@ -484,13 +514,13 @@ class Program(tk.Tk):
                 # if the file isnt found create the file
                 except FileNotFoundError as e:
                     file = open(path, 'w')
-                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + "\n"
+                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + NEWLN
                     file.write(fileEntry)
                 # any unexpected errors write to a backup file so not to miss it
                 except Exception as e:
                     print("recieving error", e.args, "attempting to save to a backup file")
                     file = open("backup messages.txt", 'a')
-                    fileEntry = message[0] + " " + message[1] + " " + t.strftime("%d %m %Y : ") + message[2]  + "\n"
+                    fileEntry = message[0] + " " + message[1] + " " + t.strftime("%d %m %Y : ") + message[2]  + NEWLN
                     file.write(fileEntry)
                 #eventually write the message to the file and close it
                 finally:
@@ -532,7 +562,7 @@ class Program(tk.Tk):
                 
                 # get next servers details
                 onlineUserSocket = s.socket()
-                self.currentConnection = self.paneLeftServers.get().strip("\n")
+                self.currentConnection = self.paneLeftServers.get().strip(NEWLN)
                 print("next server = ", self.currentConnection)
 
                 #connect to the server
@@ -556,7 +586,7 @@ class Program(tk.Tk):
                         if i == self.userID:
                             pass
                         else:
-                            self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
+                            self.paneLeftClients.insert(self.clients[i][0] + ", " + i[:4])
                     self.changeServer == False
                 except Exception as e:
                     if e.args in NETWORKERRORCODES:
@@ -575,25 +605,33 @@ class Program(tk.Tk):
         onlineUserSocket.close()
         return 0
                 
-
     # check for online servers
     def GetOnlineServers(self):
+        self.serverFile = open(SERVERFILE, "r").readlines()
         print(self.serverFile)
+
         while 1:
-            self.paneLeftServers.clear()
-            with th.Lock() as lock:
+            with th.Lock():
+
+                self.paneLeftServers.clear()
+            
                 onlineServerSocket = s.socket()
                 onlineServerSocket.settimeout(1)
                 
                 for i in self.serverFile:
-                    print(i.strip("\n",))
+                    print(i.strip(NEWLN,))
+                    # allows servers to be commented out
                     if i.find("#") > -1:
                         pass
+
+                    # try connecting to see if the server is online
                     try:
                         onlineServerSocket = s.socket()
-                        onlineServerSocket.connect((i.strip("\n"),9000))
+                        onlineServerSocket.connect((i.strip(NEWLN),9000))
                         onlineServerSocket.send("1".encode("ascii"))
                         onlineServerSocket.close()
+
+                        # if connected add tot he list box
                         self.paneLeftServers.insert(i)
                     except Exception as e:
                         # error code 8 for unix error code 10060 or 10061 for nt
@@ -601,22 +639,26 @@ class Program(tk.Tk):
                             pass
                         else:
                             print(i)
-                            raise
                             pass
+                
+                
+
             t.sleep(THREADWAITTIME)
         print("get online server thread closing")
         return 0
 
-
+# main function
 def main():
-        # if the login file doesnt exist then open login prompt
-    if LOGINFILE not in os.listdir():
-        loginWindow = loginBox()
-        # wait a second for the file to write
-        t.sleep(1)
+    
+    # run login window to check user details
+    loginWindow = loginBox()
 
-    P = Program()
-    return 1
+    # if login passed then load program
+    if loginWindow.didLogin == True:
+        Program()
+
+    # return a value to say that the program ended
+    return 0
 
 if __name__ == "__main__":
     main()
