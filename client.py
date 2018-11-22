@@ -10,16 +10,33 @@ import time as t
 import sys
 import os
 
-SERVERPORT = 9000
-CLIENTPORT = 9001
-BUFFERSIZE = 65535
-THREADWAITTIME = 3
-BINDADDRESS = "0.0.0.0"
-SPLITCHAR = '`'
-LOGINFILE = "login.txt"
-PRIMEFILE = "primes.txt"
-SERVERFILE = "servers.txt"
-SOCKETENCODING = "ascii"
+# import settings 
+try:
+    CONFIG = js.load(open("settings.json"))
+    # standard variables shouldn't change
+    SERVERPORT = 9000
+    CLIENTPORT = 9001
+    BINDADDRESS = "0.0.0.0"
+    SPLITCHAR = '`'
+    SOCKETENCODING = "ascii"
+    # non standard variables 
+    BUFFERSIZE = CONFIG["buffer_size"]
+    THREADWAITTIME = CONFIG["thread_delay"]                 
+    LOGINFILE = CONFIG["login_file_name"]
+    SERVERFILE = CONFIG["server_list_file_name"]
+
+
+# if an error occurs use default settings
+except:
+    SERVERPORT = 9000
+    CLIENTPORT = 9001
+    BUFFERSIZE = 65535
+    THREADWAITTIME = 3
+    BINDADDRESS = "0.0.0.0"
+    SPLITCHAR = '`'
+    LOGINFILE = "login.txt"
+    SERVERFILE = "servers.txt"
+    SOCKETENCODING = "ascii"
 
 NETWORKERRORCODES = [
                         8,
@@ -262,8 +279,9 @@ class loginBox(tk.Tk):
         password = self.passwordInput.get()
 
         # if no password or username then dont login
-        if password == "":
+        if password == "" or username == "":
             self.didLogin = False
+            messageBox("no username or password entered")
             return 0
 
         if LOGINFILE not in os.listdir():
@@ -316,8 +334,6 @@ class loginBox(tk.Tk):
                 messageBox("incorrect login")
             return 0
 
-
-
     def exit(self):
         sys.exit(0)
 
@@ -326,7 +342,7 @@ class Program(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title("")
+        self.title("main window")
 
         #defining program variables
 
@@ -462,6 +478,7 @@ class Program(tk.Tk):
 
             # iterate over messages
             for i in messages:
+                print(messages)
                 self.PaneRootMessages.list_insert(i)
 
         # clear the list because tkinter diddnt pick up on the click
