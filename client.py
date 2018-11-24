@@ -186,6 +186,11 @@ class scrollListBox(tk.Frame):
     def get(self):
         return self.listBox.get(tk.ACTIVE)
 
+# a simple windo to manage the sserver file to add or remove servers
+class serverManager(tk.Tk):
+    def __init__(self):
+        super().__init__()
+
 # this implements the classic file menu bar 
 # found at the top of many applications this 
 # will be used to add a exit butto
@@ -416,7 +421,7 @@ class Program(tk.Tk):
         self.serverFile = open(SERVERFILE, "r").readlines()
 
     #this function sends a message to the currently selected client
-    def send_message(self):
+    def send_message(self): 
         if self.currentConnection != "" and self.currentClient != "":
             print("sending message")
 
