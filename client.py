@@ -25,7 +25,6 @@ try:
     LOGINFILE = CONFIG["login_file_name"]
     SERVERFILE = CONFIG["server_list_file_name"]
 
-
 # if an error occurs use default settings
 except:
     SERVERPORT = 9000
@@ -376,7 +375,7 @@ class Program(tk.Tk):
             print(e.args)
             details_file.close()
 
-        self.protocolString = self.userID + SPLITCHAR + self.userName 
+        self.protocolString = self.userID + SPLITCHAR + self.userName
         print(self.protocolString)
 
         # creating the gui
@@ -472,6 +471,11 @@ class Program(tk.Tk):
             try:
                 file = open(filepath, "r")
                 messages = file.readlines()
+
+                # iterate over messages
+                for i in messages:
+                    print(messages)
+                    self.PaneRootMessages.list_insert(i)
 
             # usually called when the file doent exist
             except Exception as e:
@@ -608,7 +612,7 @@ class Program(tk.Tk):
                         if i == self.userID:
                             pass
                         else:
-                            self.paneLeftClients.insert(self.clients[i][0] + ", " + i[:4])
+                            self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
                     self.changeServer == False
                 except Exception as e:
                     if e.args in NETWORKERRORCODES:
@@ -631,37 +635,35 @@ class Program(tk.Tk):
     def GetOnlineServers(self):
         self.serverFile = open(SERVERFILE, "r").readlines()
         print(self.serverFile)
-
         while 1:
-            with th.Lock():
-
-                self.paneLeftServers.clear()
             
-                onlineServerSocket = s.socket()
-                onlineServerSocket.settimeout(1)
-                
-                for i in self.serverFile:
-                    print(i.strip(NEWLN,))
-                    # allows servers to be commented out
-                    if i.find("#") > -1:
+            self.paneLeftServers.clear()
+        
+            onlineServerSocket = s.socket()
+            onlineServerSocket.settimeout(1)
+            
+            for i in self.serverFile:
+                print(i.strip(NEWLN,))
+                # allows servers to be commented out
+                if i.find("#") > -1:
+                    pass
+
+                # try connecting to see if the server is online
+                try:
+                    onlineServerSocket = s.socket()
+                    onlineServerSocket.connect((i.strip(NEWLN),9000))
+                    onlineServerSocket.send("1".encode("ascii"))
+                    onlineServerSocket.close()
+
+                    # if connected add tot he list box
+                    self.paneLeftServers.insert(i)
+                except Exception as e:
+                    # error code 8 for unix error code 10060 or 10061 for nt
+                    if e.args[0] in NETWORKERRORCODES:
                         pass
-
-                    # try connecting to see if the server is online
-                    try:
-                        onlineServerSocket = s.socket()
-                        onlineServerSocket.connect((i.strip(NEWLN),9000))
-                        onlineServerSocket.send("1".encode("ascii"))
-                        onlineServerSocket.close()
-
-                        # if connected add tot he list box
-                        self.paneLeftServers.insert(i)
-                    except Exception as e:
-                        # error code 8 for unix error code 10060 or 10061 for nt
-                        if e.args[0] in NETWORKERRORCODES:
-                            pass
-                        else:
-                            print(i)
-                            pass
+                    else:
+                        print(i)
+                        pass
                 
                 
 

@@ -41,7 +41,7 @@ class clientConnection():
         self.Uid = UID
         self.exit = False
 
-        self.recv_thread = th.Thread(target = self.recieve_Data, daemon=True, args=())
+        self.recv_thread = th.Thread(target = self.recieve_Data, daemon=True)
 
     def start(self):
         self.recv_thread.start()
@@ -104,7 +104,6 @@ while True:
     else:
         print(address)
         try:
-            print(address)
             tmpObject = clientConnection(details[0], details[1], address, tmpSocket)
             clients.append(tmpObject)
             clients[clients.index(tmpObject)].start()
@@ -112,3 +111,4 @@ while True:
         except Exception as e:
             print("error with connection", e.args)
             tmpSocket.close()
+
