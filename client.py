@@ -545,10 +545,6 @@ class Program(tk.Tk):
                 #eventually write the message to the file and close it
                 finally:
                     file.close()
-
-            # if the sender is the currently active user insert onto the message view
-            if self.currentClient[1] == message[0]:
-                self.PaneRootMessages.list_insert(fileEntry)
    
         print("incoming_connection lister is closing")
 
