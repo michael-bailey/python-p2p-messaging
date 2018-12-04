@@ -256,6 +256,10 @@ class loginBox(tk.Tk):
         # create a login variable to be checked
         self.didLogin = False
         
+        # check if message folder is there
+        if "messages" not in os.listdir():
+            os.mkdir("./messages")
+
         #create object
         self.userLabel = tk.Label(self, text="username : ")
         self.passwordLabel = tk.Label(self, text="password : ")
@@ -425,8 +429,8 @@ class Program(tk.Tk):
             print("sending message")
 
             # get current client details
-            clientID = self.currentClient[1]
-            clientIP = self.clients[clientID][1]
+            currentClientID = self.currentClient[1]
+            currentClientIP = self.clients[currentClientID][1]
 
             # get message from text box
             message = self.PaneRootMessages.entry_get()
@@ -437,8 +441,8 @@ class Program(tk.Tk):
                 sender_socket = s.socket()
 
                 # attept to open the file and socket to capture any errors befor they occur
-                sender_socket.connect((clientIP, CLIENTPORT))
-                file = open("messages/" + clientID + ".txt", "a")
+                sender_socket.connect((currentClientIP, CLIENTPORT))
+                file = open("messages/" + currentClientID + ".txt", "a")
 
                 # try send to the client and write to file
                 sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
@@ -457,44 +461,34 @@ class Program(tk.Tk):
 
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
+        self.PaneRootMessages.list_clear()
 
         # construct path to messages file
         self.currentClient = self.paneLeftClients.get().split(", ")
         filepath = "messages/" + self.currentClient[1] + ".txt"
 
-        # check if tkinter didnt pick up on the listbox click (usually common) then clear the list box
-        if self.currentClient[1] != "":
-            # clear the listbox
-            self.PaneRootMessages.list_clear()
 
-            # open file and get any saved messages
-            try:
-                file = open(filepath, "r")
-                messages = file.readlines()
+        # clear the listbox
+        self.PaneRootMessages.list_clear()
 
-                # iterate over messages
-                for i in messages:
-                    print(messages)
-                    self.PaneRootMessages.list_insert(i)
-
-            # usually called when the file doent exist
-            except Exception as e:
-                if e.args[0] == 2:
-                    file = open(filepath, "w")
-                    
-                self.PaneRootMessages.list_clear()
-                print("error changing client", e.args)
-
-            # iterate over messages
+        # open file and get any saved messages
+        try:
+            file = open(filepath, "r")
+            messages = file.readlines()
+            
             for i in messages:
-                print(messages)
+                print(i)
                 self.PaneRootMessages.list_insert(i)
 
-        # clear the list because tkinter diddnt pick up on the click
-        else:
+
+        # usually called when the file doent exist
+        except Exception as e:
+            if e.args[0] == 2:
+                file = open(filepath, "w")
+                
             self.PaneRootMessages.list_clear()
-            filepath = "messages/" + self.currentClient
-        
+            print("error changing client", e.args)
+
     # called when a server is selected from the server pane
     def change_Server(self, event):
         print("changing server")
@@ -643,7 +637,7 @@ class Program(tk.Tk):
             onlineServerSocket.settimeout(1)
             
             for i in self.serverFile:
-                print(i.strip(NEWLN,))
+                print(i.strip(NEWLN))
                 # allows servers to be commented out
                 if i.find("#") > -1:
                     pass
