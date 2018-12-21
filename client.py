@@ -625,10 +625,62 @@ class Program(tk.Tk):
     def GetOnlineServers(self):
         self.serverFile = open(SERVERFILE, "r").readlines()
         print(self.serverFile)
+        onlineServers = []
+        Lock = th.RLock()
         while 1:
+
+            # get a lock over variables
             
+            Lock.acquire()
+            for i in self.serverFile:
+                print(i.strip(NEWLN))
+                # allows servers to be commented out
+                if i.find("#") > -1:
+                    pass
+
+                # try connecting to see if the server is online
+                try:
+                    onlineServerSocket = s.socket()
+                    onlineServerSocket.settimeout(1)
+                    onlineServerSocket.connect((i.strip(NEWLN),9000))
+                    onlineServerSocket.send("1".encode("ascii"))
+                    onlineServerSocket.close()
+
+                    # if connected add to a list of active servers
+                    onlineServers.append(i)
+                    self.paneLeftServers.insert(i)
+
+                except Exception as e:
+
+                    # error code 8 for unix, error code 10060 or 10061 for nt (windows)
+                    if e.args[0] in NETWORKERRORCODES or e.args[0] == "timed out":
+                        pass
+                    else:
+                        print(e.args)
+                        print(i)
+                        pass
+                
+
+            # release the lock
+            Lock.release()
+            
+            # allow other threads to operate, with a delay
+            t.sleep(THREADWAITTIME)
+            
+
+
+
+
+
+
+
+
+
+
+
+
+            """
             self.paneLeftServers.clear()
-        
             onlineServerSocket = s.socket()
             onlineServerSocket.settimeout(1)
             
@@ -645,7 +697,8 @@ class Program(tk.Tk):
                     onlineServerSocket.send("1".encode("ascii"))
                     onlineServerSocket.close()
 
-                    # if connected add tot he list box
+                    # if connected add to a list of active servers
+                    onlineS
                     self.paneLeftServers.insert(i)
                 except Exception as e:
                     # error code 8 for unix error code 10060 or 10061 for nt
@@ -656,8 +709,10 @@ class Program(tk.Tk):
                         pass
                 
                 
-
+            
             t.sleep(THREADWAITTIME)
+
+            """
         print("get online server thread closing")
         return 0
 
