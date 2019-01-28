@@ -4,3 +4,6 @@ old/.DS_Store
 .DS_Store
 *.json
 .*
+class table.pages
+program.zip
+__pycache__/client.cpython-36.pyc

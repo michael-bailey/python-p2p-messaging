@@ -628,7 +628,7 @@ class Program(tk.Tk):
         onlineServers = []
         Lock = th.RLock()
         while 1:
-
+            self.paneLeftServers.clear()
             # get a lock over variables
             
             Lock.acquire()
@@ -659,8 +659,6 @@ class Program(tk.Tk):
                         print(e.args)
                         print(i)
                         pass
-                
-
             # release the lock
             Lock.release()
             
