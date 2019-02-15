@@ -7,3 +7,4 @@ old/.DS_Store
 class table.pages
 program.zip
 __pycache__/client.cpython-36.pyc
+servers.txt
