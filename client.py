@@ -446,10 +446,10 @@ class Program(tk.Tk):
 
                 # try send to the client and write to file
                 sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
-                file.write(t.strftime("%d %m %Y : ") + message + NEWLN)
+                file.write(t.strftime("%d %m %Y : ") + self.currentClient[0] + " : " + message + NEWLN)
 
                 #then add them to the message box (as this will be the active client)
-                self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ") + message)
+                self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ")  + self.currentClient[0] + " : " + message)
 
             except Exception as e:
                 print("failed to send", e.args, "not sent")
@@ -463,31 +463,40 @@ class Program(tk.Tk):
     def change_client(self, event):
         self.PaneRootMessages.list_clear()
 
-        # construct path to messages file
-        self.currentClient = self.paneLeftClients.get().split(", ")
-        filepath = "messages/" + self.currentClient[1] + ".txt"
+        # try construct path to messages file
+        try:
+            self.currentClient = self.paneLeftClients.get().split(", ")
+            filepath = "messages/" + self.currentClient[1] + ".txt"
+        except:
+            # if the list box is empty an arror occurs with lists
+            filepath = ""
 
 
         # clear the listbox
         self.PaneRootMessages.list_clear()
 
-        # open file and get any saved messages
-        try:
-            file = open(filepath, "r")
-            messages = file.readlines()
-            
-            for i in messages:
-                print(i)
-                self.PaneRootMessages.list_insert(i)
-
-
-        # usually called when the file doent exist
-        except Exception as e:
-            if e.args[0] == 2:
-                file = open(filepath, "w")
+        # check if the filepath contains a path
+        if filepath != "":
+            # open file and get any saved messages
+            try:
+                file = open(filepath, "r")
+                messages = file.readlines()
                 
-            self.PaneRootMessages.list_clear()
-            print("error changing client", e.args)
+                for i in messages:
+                    print(i)
+                    self.PaneRootMessages.list_insert(i)
+
+
+            # usually called when the file doent exist
+            except Exception as e:
+                if e.args[0] == 2:
+                    file = open(filepath, "w")
+                    
+                self.PaneRootMessages.list_clear()
+                print("error changing client", e.args)
+        else:
+            print("error handled")
+            return
 
     # called when a server is selected from the server pane
     def change_Server(self, event):
@@ -525,7 +534,7 @@ class Program(tk.Tk):
             with th.Lock():
                 try:
                     file = open(path, 'a')
-                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + NEWLN
+                    fileEntry = t.strftime("%d %m %Y : ") + self.currentClient[0] + " : " + message[2] + NEWLN
                     file.write(fileEntry)
 
                     # if the sender is the currently active user insert onto the message view
@@ -534,7 +543,7 @@ class Program(tk.Tk):
                 # if the file isnt found create the file
                 except FileNotFoundError as e:
                     file = open(path, 'w')
-                    fileEntry = t.strftime("%d %m %Y : ") + message[2] + NEWLN
+                    fileEntry = t.strftime("%d %m %Y : ")  + self.currentClient[0] + " : " + message[2] + NEWLN
                     file.write(fileEntry)
                 # any unexpected errors write to a backup file so not to miss it
                 except Exception as e:
