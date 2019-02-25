@@ -3,7 +3,6 @@
 import threading as th
 import hashlib as hashing
 import tkinter as tk
-import platform as plat
 import socket as s
 import json as js
 import time as t
