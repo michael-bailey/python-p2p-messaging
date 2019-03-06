@@ -359,7 +359,13 @@ class Program(tk.Tk):
         self.passwd = ""
         self.userID = ""
         self.currentClient = ""
-        self.serverFile = open(SERVERFILE, "r").readlines()
+        #attempt to open the server and load contents
+        try:
+            self.serverFile = open(SERVERFILE, "r").readlines()
+        except FileNotFoundError as e:
+            print("file {} not found creating empty file".format(SERVERFILE))
+            open(SERVERFILE,"w").close()
+            self.serverfile = []
         self.protocolString = ""
         self.changeServer = False
         self.changeClient = False
