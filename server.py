@@ -73,22 +73,6 @@ class clientConnection():
         self.Socket.close()
         removeClient(self)
 
-"""
-    def send_Data(self):
-        while not self.exit:
-
-            with th.Lock():
-                if :
-                try:
-                    self.Socket.send(js.dumps(getClients()).encode("ascii"))
-                except Exception as e:
-                    print("error occured. closing client", self.ip[0], "errno", error.errno)
-                    self.close()
-            t.sleep(THREADWAITTIME)
-
-"""
-
-
 serverSocket = s.socket()
 serverSocket.bind((BINDADDRESS, SERVERPORT))
 serverSocket.listen()

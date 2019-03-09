@@ -54,7 +54,6 @@ NEWLN = "\n"
     - could use pyqt5 (might be easier than tkinter, also look better)
     - think of way of implementing multiple messageing service (MMS)
 
-
     @server
     - using a hybrid model of a peer to peer network with the help of a server
         to handle user infomation : ip address, userName, user iD 
@@ -477,7 +476,6 @@ class Program(tk.Tk):
             # if the list box is empty an arror occurs with lists
             filepath = ""
 
-
         # clear the listbox
         self.PaneRootMessages.list_clear()
 
@@ -680,52 +678,6 @@ class Program(tk.Tk):
             # allow other threads to operate, with a delay
             t.sleep(THREADWAITTIME)
             
-
-
-
-
-
-
-
-
-
-
-
-
-            """
-            self.paneLeftServers.clear()
-            onlineServerSocket = s.socket()
-            onlineServerSocket.settimeout(1)
-            
-            for i in self.serverFile:
-                print(i.strip(NEWLN))
-                # allows servers to be commented out
-                if i.find("#") > -1:
-                    pass
-
-                # try connecting to see if the server is online
-                try:
-                    onlineServerSocket = s.socket()
-                    onlineServerSocket.connect((i.strip(NEWLN),9000))
-                    onlineServerSocket.send("1".encode("ascii"))
-                    onlineServerSocket.close()
-
-                    # if connected add to a list of active servers
-                    onlineS
-                    self.paneLeftServers.insert(i)
-                except Exception as e:
-                    # error code 8 for unix error code 10060 or 10061 for nt
-                    if e.args[0] in NETWORKERRORCODES:
-                        pass
-                    else:
-                        print(i)
-                        pass
-                
-                
-            
-            t.sleep(THREADWAITTIME)
-
-            """
         print("get online server thread closing")
         return 0
 
