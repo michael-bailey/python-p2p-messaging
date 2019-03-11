@@ -184,11 +184,6 @@ class scrollListBox(tk.Frame):
     def get(self):
         return self.listBox.get(tk.ACTIVE)
 
-# a simple windo to manage the sserver file to add or remove servers
-class serverManager(tk.Tk):
-    def __init__(self):
-        super().__init__()
-
 # this implements the classic file menu bar 
 # found at the top of many applications this 
 # will be used to add a exit butto
