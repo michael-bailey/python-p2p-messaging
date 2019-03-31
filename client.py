@@ -249,10 +249,6 @@ class loginBox(tk.Tk):
 
         # create a login variable to be checked
         self.didLogin = False
-        
-        # check if message folder is there
-        if "messages" not in os.listdir():
-            os.mkdir("./messages")
 
         #create object
         self.userLabel = tk.Label(self, text="username : ")
@@ -353,13 +349,19 @@ class Program(tk.Tk):
         self.passwd = ""
         self.userID = ""
         self.currentClient = ""
-        #attempt to open the server and load contents
+
+        # check if message folder is there
+        if "messages" not in os.listdir():
+            os.mkdir("./messages")
+        
+        #attempt to open the server file and load contents
         try:
             self.serverFile = open(SERVERFILE, "r").readlines()
         except FileNotFoundError as e:
             print("file {} not found creating empty file".format(SERVERFILE))
             open(SERVERFILE,"w").close()
             self.serverfile = []
+
         self.protocolString = ""
         self.changeServer = False
         self.changeClient = False
