@@ -10,3 +10,5 @@ __pycache__/client.cpython-36.pyc
 servers.txt
 *.pyc
 .DS_Store
+.vs/python-p2p-messaging/v15/.suo
+.vs/slnx.sqlite
