@@ -446,10 +446,10 @@ class Program(tk.Tk):
 
                 # try send to the client and write to file
                 sender_socket.send((self.protocolString + "`" + message).encode("ascii"))
-                file.write(t.strftime("%d %m %Y : ") + self.currentClient[0] + " : " + message + NEWLN)
+                file.write(t.strftime("%d %m %Y : ") + self.userName + " : " + message + NEWLN)
 
                 #then add them to the message box (as this will be the active client)
-                self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ")  + self.currentClient[0] + " : " + message)
+                self.PaneRootMessages.list_insert(t.strftime("%d %m %Y : ")  + self.userName + " : " + message)
 
             except Exception as e:
                 print("failed to send", e.args, "not sent")
@@ -533,7 +533,8 @@ class Program(tk.Tk):
             with th.Lock():
                 try:
                     file = open(path, 'a')
-                    fileEntry = t.strftime("%d %m %Y : ") + self.currentClient[0] + " : " + message[2] + NEWLN
+                    print("got connection from", message)
+                    fileEntry = t.strftime("%d %m %Y : ") + message[1] + " : " + message[2] + NEWLN
                     file.write(fileEntry)
 
                     # if the sender is the currently active user insert onto the message view
@@ -542,7 +543,7 @@ class Program(tk.Tk):
                 # if the file isnt found create the file
                 except FileNotFoundError as e:
                     file = open(path, 'w')
-                    fileEntry = t.strftime("%d %m %Y : ")  + self.currentClient[0] + " : " + message[2] + NEWLN
+                    fileEntry = t.strftime("%d %m %Y : ")  + message[1] + " : " + message[2] + NEWLN
                     file.write(fileEntry)
                 # any unexpected errors write to a backup file so not to miss it
                 except Exception as e:
