@@ -85,7 +85,7 @@ while True:
     print(details)
     if len(details) == 1:
         tmpSocket.close()
-    else:
+    elif len(details) == 2:
         print(address)
         try:
             tmpObject = clientConnection(details[0], details[1], address, tmpSocket)
@@ -95,4 +95,5 @@ while True:
         except Exception as e:
             print("error with connection", e.args)
             tmpSocket.close()
-
+    else:
+        tmpSocket.close()
