@@ -598,6 +598,7 @@ class Program(tk.Tk):
                             self.currentConnection = ""
                 
                 # get next servers details
+                self.changeServer = False
                 onlineUserSocket = s.socket()
                 self.currentConnection = self.paneLeftServers.get().strip(NEWLN)
                 print("next server = ", self.currentConnection)
@@ -614,8 +615,9 @@ class Program(tk.Tk):
                     pass
             
             # otherwise recieve data from the server
-            elif self.currentConnection != "" and self.changeClient != True:
+            elif self.currentConnection != "" or self.changeClient == False:
                 #self.paneLeftClients.clear()
+                self.connectedClients = []
                 try:
                     onlineUserSocket.send("?".encode(SOCKETENCODING))
                     self.clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
@@ -623,7 +625,8 @@ class Program(tk.Tk):
                         if i == self.userID:
                             pass
                         else:
-                            self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
+                            self.connectedClients.append(self.clients[i][0] + ", " + i)
+                            #self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
                     self.paneLeftClients.clear()
                     self.changeServer == False
                 except Exception as e:
@@ -635,6 +638,11 @@ class Program(tk.Tk):
                         print("not connected\nonline user thread", e.args)
                         self.currentConnection = ""
                         self.changeServer == False
+                
+                # refresh the client list
+                self.paneLeftClients.clear()
+                for i in self.connectedClients:
+                    self.paneLeftClients.insert(i)
             # otherwise do noting
             else:
                 pass
