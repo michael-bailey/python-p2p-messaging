@@ -470,7 +470,7 @@ class Program(tk.Tk):
             self.currentClient = self.paneLeftClients.get().split(", ")
             filepath = "messages/" + self.currentClient[1] + ".txt"
         except:
-            # if the list box is empty an arror occurs with lists
+            # if the list box is empty an error occurs with lists
             filepath = ""
 
         # clear the listbox
@@ -605,7 +605,7 @@ class Program(tk.Tk):
             
             # otherwise recieve data from the server
             elif self.currentConnection != "":
-                self.paneLeftClients.clear()
+                #self.paneLeftClients.clear()
                 try:
                     onlineUserSocket.send("?".encode(SOCKETENCODING))
                     self.clients = js.loads(onlineUserSocket.recv(65535).decode(SOCKETENCODING))
@@ -614,6 +614,7 @@ class Program(tk.Tk):
                             pass
                         else:
                             self.paneLeftClients.insert(self.clients[i][0] + ", " + i)
+                    self.paneLeftClients.clear()
                     self.changeServer == False
                 except Exception as e:
                     if e.args in NETWORKERRORCODES:
@@ -639,9 +640,9 @@ class Program(tk.Tk):
         onlineServers = []
         Lock = th.RLock()
         while 1:
-            self.paneLeftServers.clear()
+            #self.paneLeftServers.clear()
             # get a lock over variables
-            
+            onlineServers = []
             Lock.acquire()
             for i in self.serverFile:
                 print(i.strip(NEWLN))
@@ -659,7 +660,9 @@ class Program(tk.Tk):
 
                     # if connected add to a list of active servers
                     onlineServers.append(i)
-                    self.paneLeftServers.insert(i)
+                    #self.paneLeftServers.insert(i)
+
+
 
                 except Exception as e:
 
@@ -670,6 +673,12 @@ class Program(tk.Tk):
                         print(e.args)
                         print(i)
                         pass
+
+            # add the servers to the list after scanning
+            self.paneLeftServers.clear()
+            for i in onlineServers:
+                self.paneLeftServers.insert(i)
+
             # release the lock
             Lock.release()
             
