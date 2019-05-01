@@ -43,7 +43,8 @@ NETWORKERRORCODES = [
                         11001,
                         10060,
                         61,
-                        64
+                        64,
+                        32
                     ]
 
 # setting the new line char to a variable for ease of use
