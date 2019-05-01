@@ -183,6 +183,9 @@ class scrollListBox(tk.Frame):
     # returns the currently selected element
     def get(self):
         return self.listBox.get(tk.ACTIVE)
+    
+    def curSelection(self):
+        return self.listBox.curselection()
 
 # this implements the classic file menu bar 
 # found at the top of many applications this 
@@ -463,6 +466,7 @@ class Program(tk.Tk):
 
     # called when any of the clents in the client selection window is clicked 
     def change_client(self, event):
+        self.changeClient = True
         self.PaneRootMessages.list_clear()
 
         # try construct path to messages file
@@ -498,12 +502,17 @@ class Program(tk.Tk):
         else:
             print("error handled")
             return
+        self.changeClient = False
 
     # called when a server is selected from the server pane
     def change_Server(self, event):
         print("changing server")
         self.currentClient = ""
+        self.paneLeftClients.clear()
         self.PaneRootMessages.list_clear()
+
+        #self.nextConnection = self.paneLeftServers.get().strip(NEWLN)
+
         self.changeServer = True
         
     # destroy window to exit program (avoids ide errors)
@@ -567,6 +576,7 @@ class Program(tk.Tk):
         while 1:
             # is client changing servers
             if self.changeServer == True:
+
                 self.changeServer = False
                 # does the client have a connection if so close it
                 if self.currentConnection != "":
@@ -604,7 +614,7 @@ class Program(tk.Tk):
                     pass
             
             # otherwise recieve data from the server
-            elif self.currentConnection != "":
+            elif self.currentConnection != "" and self.changeClient != True:
                 #self.paneLeftClients.clear()
                 try:
                     onlineUserSocket.send("?".encode(SOCKETENCODING))
@@ -642,46 +652,47 @@ class Program(tk.Tk):
         while 1:
             #self.paneLeftServers.clear()
             # get a lock over variables
-            onlineServers = []
-            Lock.acquire()
-            for i in self.serverFile:
-                print(i.strip(NEWLN))
-                # allows servers to be commented out
-                if i.find("#") > -1:
-                    pass
-
-                # try connecting to see if the server is online
-                try:
-                    onlineServerSocket = s.socket()
-                    onlineServerSocket.settimeout(1)
-                    onlineServerSocket.connect((i.strip(NEWLN),9000))
-                    onlineServerSocket.send("1".encode("ascii"))
-                    onlineServerSocket.close()
-
-                    # if connected add to a list of active servers
-                    onlineServers.append(i)
-                    #self.paneLeftServers.insert(i)
-
-
-
-                except Exception as e:
-
-                    # error code 8 for unix, error code 10060 or 10061 for nt (windows)
-                    if e.args[0] in NETWORKERRORCODES or e.args[0] == "timed out":
-                        pass
-                    else:
-                        print(e.args)
-                        print(i)
+            if self.changeServer == False:
+                onlineServers = []
+                Lock.acquire()
+                for i in self.serverFile:
+                    print(i.strip(NEWLN))
+                    # allows servers to be commented out
+                    if i.find("#") > -1:
                         pass
 
-            # add the servers to the list after scanning
-            self.paneLeftServers.clear()
-            for i in onlineServers:
-                self.paneLeftServers.insert(i)
+                    # try connecting to see if the server is online
+                    try:
+                        onlineServerSocket = s.socket()
+                        onlineServerSocket.settimeout(1)
+                        onlineServerSocket.connect((i.strip(NEWLN),9000))
+                        onlineServerSocket.send("1".encode("ascii"))
+                        onlineServerSocket.close()
 
-            # release the lock
-            Lock.release()
-            
+                        # if connected add to a list of active servers
+                        onlineServers.append(i)
+                        #self.paneLeftServers.insert(i)
+
+
+
+                    except Exception as e:
+
+                        # error code 8 for unix, error code 10060 or 10061 for nt (windows)
+                        if e.args[0] in NETWORKERRORCODES or e.args[0] == "timed out":
+                            pass
+                        else:
+                            print(e.args)
+                            print(i)
+                            pass
+
+                # add the servers to the list after scanning
+                self.paneLeftServers.clear()
+                for i in onlineServers:
+                    self.paneLeftServers.insert(i)
+
+                # release the lock
+                Lock.release()
+                
             # allow other threads to operate, with a delay
             t.sleep(THREADWAITTIME)
             
