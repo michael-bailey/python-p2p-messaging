@@ -1,27 +1,32 @@
 import json
 
+
+
 class Preferences(object):
+    __instance = None
 
     def __init__(self):
-        if not hasattr(self, 'preferences'):
-            with open("preferences.json", "r+") as file:
-                self.preferences = json.load(file)
-    
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = object.__new__(cls, *args, **kwargs)
-        return cls._instance
+        if Preferences.__instance != None:
+            self = Preferences.__instance
+        else:
+            try:
+                self.__file = open("preferences.pref", "r+")
+                self.__preferences = json.load(self.__file)
+            except FileNotFoundError:
+                self.__file = open("preferences.pref", "w+")
+                self.__preferences = {}
+            
     
     def getPreference(self, preferenceName):
-        if preferenceName in self.preferences.keys():
-            return self.preferences[preferenceName]
+        if preferenceName in self.__preferences.keys():
+            return self.__preferences[preferenceName]
         else:
             return ""
 
     def setPreference(self, preferenceName, value):
-        self.preferences[preferenceName] = value
+        self.__preferences[preferenceName] = value
         self.update()
 
     def update(self):
-        with open("preferences.json", "w") as file:
-            json.dump(self, file)
+        json.dump(self.__preferences, self.__file)
+        self.__file.flush()
