@@ -1,8 +1,12 @@
-import client
-import 
+from program.Preferences import Preferences
 
 def main():
-    client()
+    a = Preferences()
+
+    a.setPreference("colour", "blue")
+    print(a.getPreference("colour"))
+    b = Preferences()
+    print(b.getPreference("colour"))
 
 if __name__ == "__main__":
-    pass
+    main()
