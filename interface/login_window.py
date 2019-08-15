@@ -8,12 +8,13 @@ from tkinter import ttk
 
 class Login_Frame(tk.Tk):
     def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
-        tk.Tk.iconbitmap(self, default="")
-        tk.Tk.wm_title(self, "Login")
+        super.__init__(self, *args, **kwargs)
+        self.iconbitmap(self, default="")
+        self.wm_title(self, "Login")
         #tk.Tk.overrideredirect(self,True)
-        width = 500                                #tk.Tk.winfo_screenwidth(self)
-        height = 500                               #tk.Tk.winfo_screenheight(self)
+        width = 300                                #tk.Tk.winfo_screenwidth(self)
+        height = 200           
+                            #tk.Tk.winfo_screenheight(self)
         res = str(width)+"x"+str(height)
         tk.Tk.geometry(self,res)
 

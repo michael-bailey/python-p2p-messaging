@@ -14,6 +14,7 @@ class client(object):
     def __init__(self):
         if not hasattr(self, 'preferences'):
             self.preferences = Preferences()
+            self.notificationCenter = NotificationCenter()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
