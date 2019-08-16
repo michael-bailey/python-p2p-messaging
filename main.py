@@ -1,27 +1,33 @@
-from program.Preferences import Preferences
 from program.NotificationCenter import NotificationCenter
+from program.Preferences import Preferences
 
-def test_func(sender, notification_name, info):
-    print(sender)
-    print(notification_name)
-    print(info)
+
+class hj(object):
+    def test_func(self, notification_name, info=None):
+        print(self)
+        print(notification_name)
+        print(info)
 
 def main():
     a = Preferences()
-
+    print(a)
     a.setPreference("colour", "blue")
     print(a.getPreference("colour"))
     b = Preferences()
+    print(b)
     print(b.getPreference("colour"))
 
+    bob = hj()
+    alice = hj()
     c = NotificationCenter()
+    print(c)
 
-    c.add_observer(test_func, "call")
-    c.post_notification(object(), "call", [1,2,3,4,5,6])
+    c.addObserver(bob, bob.test_func, "call")
+    c.postNotification("call", "boop")
 
     d = NotificationCenter()
-    d.post_notification(object(), "call", [1,2,3,4,5,6])
-
+    print(d)
+    d.postNotification("call", "boop")
 
 if __name__ == "__main__":
     main()

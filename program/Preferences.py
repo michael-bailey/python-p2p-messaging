@@ -1,16 +1,37 @@
 import json
-import os
 
-class Singleton(object):
+
+class Preferences(object):
     __instance = None
-    def __new__(cls, val):
-        # does the single instace not exist
-        if Singleton.__instance is None:
-            Singleton.__instance = object.__new__(cls)
-            tmp = Singleton.__instance
+    __fileName = "preferences.pref"
+
+    def __new__(cls):
+        # does the single instance not exist
+        if Preferences.__instance is None:
+            Preferences.__instance = object.__new__(cls)
+            tmp = Preferences.__instance
             try:
-                with open("preferences.pref", "r+") as file:
+                tmp.__file = open(Preferences.__fileName, "r+")
+                tmp.__preferences = json.load(tmp.__file)
 
-            
+            except FileNotFoundError:
+                tmp.__file = open(Preferences.__fileName, "w+")
 
-        return Singleton.__instance
+            except json.JSONDecodeError:
+                tmp.__preferences = {}
+                json.dump(tmp.__preferences, tmp.__file)
+
+            return tmp
+
+        else:
+            return Preferences.__instance
+
+    def setPreference(self, name, value):
+        self.__preferences[name] = value
+        self.update()
+
+    def getPreference(self, name):
+        return self.__preferences[name]
+
+    def update(self):
+        json.dump(self.__preferences, self.__file)
