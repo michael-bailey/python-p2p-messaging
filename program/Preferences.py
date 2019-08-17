@@ -13,13 +13,20 @@ class Preferences(object):
             try:
                 tmp.__file = open(Preferences.__fileName, "r+")
                 tmp.__preferences = json.load(tmp.__file)
+                tmp.__file.close()
 
             except FileNotFoundError:
                 tmp.__file = open(Preferences.__fileName, "w+")
-
-            except json.JSONDecodeError:
                 tmp.__preferences = {}
                 json.dump(tmp.__preferences, tmp.__file)
+                tmp.__file.close()
+
+            except json.JSONDecodeError:
+                tmp.__file.close()
+                tmp.__file = open(Preferences.__fileName, "w+")
+                tmp.__preferences = {}
+                json.dump(tmp.__preferences, tmp.__file)
+                tmp.__file.close()
 
             return tmp
 
@@ -34,4 +41,6 @@ class Preferences(object):
         return self.__preferences[name]
 
     def update(self):
+        self.__file = open(Preferences.__fileName, "w+")
         json.dump(self.__preferences, self.__file)
+        self.__file.close()
