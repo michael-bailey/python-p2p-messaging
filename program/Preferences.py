@@ -1,4 +1,5 @@
 import json
+from program import NotificationCenter
 
 
 class Preferences(object):
@@ -28,6 +29,7 @@ class Preferences(object):
                 json.dump(tmp.__preferences, tmp.__file)
                 tmp.__file.close()
 
+            tmp.center = NotificationCenter()
             return tmp
 
         else:
